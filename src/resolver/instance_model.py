@@ -87,6 +87,9 @@ class ValueInstance:
     self.node = node
     self.meta = meta
 
+  def render(self):
+    return self.value
+
   def get(self):
     raise RuntimeError('Unimplemented get')
 
@@ -131,6 +134,11 @@ class List(ValueInstance):
 
     self.values = [ create_value_atom(node, e) for e in list_primitives ]
 
+  def render(self):
+    if self.values is None:
+      return None
+    return [ v.render() for v in self.values ]
+
   def get(self):
     if self.values is None:
       return None
@@ -150,6 +158,14 @@ class Map(ValueInstance):
       key = e['$key']['$value']
       self.values[key] = create_value(node, e['$information']['type'], e)
 
+  def render(self):
+    if self.values is None:
+      return None
+    values = dict()
+    for key, value in self.values.items():
+      values[key] = value.render()
+    return values
+
   def get(self):
     if self.values is None:
       return None
@@ -164,6 +180,11 @@ class GetInput(ValueInstance):
     super().__init__(node, meta)
     self.input_name = args[0]['$primitive']
 
+  def render(self):
+    return {
+      'get_input': [ self.input_name ],
+    }
+
   def get(self):
     return self.node.topology.find_input(self.input_name).get()
 
@@ -172,6 +193,11 @@ class GetProperty(ValueInstance):
   def __init__(self, node, meta, args):
     super().__init__(node, meta)
     self.args = [e['$primitive'] for e in args]
+
+  def render(self):
+    return {
+      'get_property': self.args,
+    }
 
   def get(self):
     # print('GETPROP', self.args)
@@ -194,6 +220,11 @@ class GetAttribute(ValueInstance):
     super().__init__(node, meta)
     self.args = [e['$primitive'] for e in args]
 
+  def render(self):
+    return {
+      'get_attribute': self.args,
+    }
+
   def get(self):
     # print('GETATTR', self.args)
     start = self.args[0]
@@ -215,7 +246,10 @@ class AttributeMapping(ValueInstance):
     super().__init__(node, meta)
     self.args = [e['$primitive'] for e in mapping]
 
-  def get(self, value):
+  def render(self):
+    return self.args
+
+  def get(self):
     return self.value.get()
 
   def set(self, value):
@@ -247,18 +281,34 @@ class Concat(ValueInstance):
         # print(arg)
         self.args.append(create_function(node, {}, arg['$functionCall']))
 
+  def render(self):
+    return [a.render() for a in self.args]
+
   def get(self):
     strings = [a.get() for a in self.args]
     return ''.join(strings)
 
 
 class AttributeInstance:
-  def __init__(self, node, definition, is_property=False):
+  def __init__(self, node, location, definition, is_property=False):
     self.node = node
+    self.location = location
     self.mapping = None
     self.is_property = is_property
     self.definition = copy.deepcopy(definition)
     self.value = create_value_atom(node, self.definition)
+
+  def render(self):
+    if self.mapping is None:
+      return {
+        'value': self.value.get()
+      }
+    return {
+      'mapping': self.mapping.location()
+    }
+
+  def location(self):
+    return [ self.node.topology.author, self.node.topology.name ]
 
   def map(self, other):
     self.mapping = other
@@ -272,11 +322,16 @@ class AttributeInstance:
 
     return self.value.get()
 
+  def update(self, diff):
+    if 'value' in diff.keys():
+      print(diff['value'])
+      self.set(Primitive(self.node, {}, diff['value']))
+
   def set(self, value):
     self.value = value
     if self.mapping is not None:
       self.mapping.set(value)      
-    print(f'UPDATED ATTR {self.node.topology.name} {self.node.name} : {self.value.get()}')
+    #print(f'UPDATED ATTR {self.node.topology.name} {self.node.name} : {self.value.get()}')
 
 
 class CapabilityInstance:
@@ -292,6 +347,7 @@ class CapabilityInstance:
     for prop_name, prop_def in self.definition['properties'].items():
       self.attributes[prop_name] = AttributeInstance(
         self.node,
+        [ self.node.name, self.name, prop_name ],
         prop_def,
         is_property=True
       )
@@ -299,6 +355,7 @@ class CapabilityInstance:
     for attr_name, attr_def in self.definition['attributes'].items():
       self.attributes[attr_name] = AttributeInstance(
         self.node,
+        [ self.node.name, self.name, attr_name ],
         attr_def
       )
 
@@ -307,14 +364,23 @@ class CapabilityInstance:
     render_attributes = {}
     for attr_name, attr in self.attributes.items():
       if attr.is_property:
-        render_properties[attr_name] = attr.get()
+        render_properties[attr_name] = attr.render()
       else:
-        render_attributes[attr_name] = attr.get()
+        render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
       'properties': render_properties,
       'attributes': render_attributes
     }
+    
+  def update(self, diff):
+    if 'attributes' in diff.keys():
+      for attr_name, attr_diff in diff['attributes'].items():
+        self.attributes[attr_name].update(attr_diff)
+      
+    if 'properties' in diff.keys():
+      for prop_name, prop_diff in diff['properties'].items():
+        self.attributes[prop_name].update(prop_diff)
 
   def find_type(self):
     seen = set(self.definition['types'].keys())
@@ -351,7 +417,12 @@ class OperationInstance:
 
     self.inputs = {}
     for input_name, input_def in self.definition['inputs'].items():
-      self.inputs[input_name] = AttributeInstance(node, input_def, is_property=True)
+      self.inputs[input_name] = AttributeInstance(
+        node,
+        [],
+        input_def,
+        is_property=True
+      )
 
     self.outputs = {}
     for output_name, output_def in self.definition['outputs'].items():
@@ -360,11 +431,11 @@ class OperationInstance:
   def render(self):
     render_inputs = {}
     for input_name, input_body in self.inputs.items():
-      render_inputs[input_name] = input_body.get()
+      render_inputs[input_name] = input_body.render()
       
     render_outputs = {}
     for output_name, output_body in self.outputs.items():
-      render_outputs[output_name] = output_body.get()
+      render_outputs[output_name] = output_body.render()
     
     return {
       'implementation': self.implementation,
@@ -383,7 +454,12 @@ class InterfaceInstance:
 
     self.inputs = {}
     for input_name, input_def in self.definition['inputs'].items():
-      self.inputs[input_name] = AttributeInstance(node, input_def, is_property=True)
+      self.inputs[input_name] = AttributeInstance(
+        node, 
+        [],
+        input_def,
+        is_property=True
+      )
 
     self.operations = {}
     for op_name, op_def in self.definition['operations'].items():
@@ -418,10 +494,19 @@ class RelationshipInstance:
     self.attributes = {}
 
     for prop_name, prop_def in self.definition['properties'].items():
-      self.attributes[prop_name] = AttributeInstance(self, prop_def, is_property=True)
+      self.attributes[prop_name] = AttributeInstance(
+        self,
+        [ self.source.name, self.name ],
+        prop_def,
+        is_property=True
+      )
 
     for attr_name, attr_def in self.definition['attributes'].items():
-      self.attributes[attr_name] = AttributeInstance(self, attr_def)
+      self.attributes[attr_name] = AttributeInstance(
+        self,
+        [ self.source.name, self.name ],
+        attr_def
+      )
 
     self.interfaces = {}
     for interface_name, interface_def in self.definition['interfaces'].items():
@@ -432,9 +517,9 @@ class RelationshipInstance:
     render_attributes = {}
     for attr_name, attr in self.attributes.items():
       if attr.is_property:
-        render_properties[attr_name] = attr.get()
+        render_properties[attr_name] = attr.render()
       else:
-        render_attributes[attr_name] = attr.get()
+        render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
       'properties': render_properties,
@@ -468,10 +553,10 @@ class NodeInstance:
     self.attributes = {}
 
     for prop_name, prop_def in self.definition['properties'].items():
-      self.attributes[prop_name] = AttributeInstance(self, prop_def, is_property=True)
+      self.attributes[prop_name] = AttributeInstance(self, [ self.name ], prop_def, is_property=True)
 
     for attr_name, attr_def in self.definition['attributes'].items():
-      self.attributes[attr_name] = AttributeInstance(self, attr_def)
+      self.attributes[attr_name] = AttributeInstance(self, [ self.name ], attr_def)
 
     self.capabilities = {}
     for cap_name, cap_def in self.definition['capabilities'].items():
@@ -485,14 +570,27 @@ class NodeInstance:
 
     self.requirements = []
 
+  def update(self, diff):
+    if 'attributes' in diff.keys():
+      for attr_name, attr_diff in diff['attributes'].items():
+        self.attributes[attr_name].update(attr_diff)
+      
+    if 'properties' in diff.keys():
+      for prop_name, prop_diff in diff['properties'].items():
+        self.attributes[prop_name].update(prop_diff)
+    
+    if 'capabilities' in diff.keys():
+      for cap_name, cap_diff in diff['capabilities'].items():
+        self.capabilities[cap_name].update(cap_diff)
+
   def render(self):
     render_properties = {}
     render_attributes = {}
     for attr_name, attr in self.attributes.items():
       if attr.is_property:
-        render_properties[attr_name] = attr.get()
+        render_properties[attr_name] = attr.render()
       else:
-        render_attributes[attr_name] = attr.get()
+        render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
       'properties': render_properties,
@@ -563,6 +661,7 @@ class TopologyTemplateInstance:
     for input_name, input_def in self.definition['inputs'].items():
       self.inputs[input_name] = AttributeInstance(
         self,
+        [ input_name ],
         input_def,
         is_property=True
       )
@@ -590,7 +689,7 @@ class TopologyTemplateInstance:
   def render(self):
     render_inputs = {}
     for input_name, input_body in self.inputs.items():
-      render_inputs[input_name] = input_body.get()
+      render_inputs[input_name] = input_body.render()
     return {
       'topology': {
         'inputs': render_inputs,
@@ -598,6 +697,15 @@ class TopologyTemplateInstance:
         'substitution_mappings': self.definition['substitution'],
       }
     }
+
+  def update(self, diff):
+    if 'topology' not in diff.keys():
+      return
+    elif 'nodes' not in diff['topology'].keys():
+      return
+    
+    for node_name, node_diff in diff['topology']['nodes'].items():
+      self.nodes[node_name].update(node_diff)
 
   def find_input(self, input_name):
     if input_name not in self.inputs.keys():

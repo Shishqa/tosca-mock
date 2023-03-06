@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import jsondiff
 
 import os
 import pickle
@@ -55,6 +56,21 @@ def add_topology(author, name, normalized_template):
   dump_database()
 
 
+
+def update_topology(author, name, updated_topology):
+  topology = get_topology(author, name)
+  
+  diff = jsondiff.diff(topology.render(), updated_topology, marshal=True)
+  print(diff)
+  
+  topology.update(diff)
+  topologies[author][name] = topology
+  
+  dump_database()
+  return diff
+  
+
+
 def get_authors():
   return list(topologies.keys())
 
@@ -80,7 +96,7 @@ def get_topology(author, topology_name):
         'error': f'Topology {topology_name} not found for {author}'
       }
     )
-  return topologies[author][topology_name].render()
+  return topologies[author][topology_name]
 
 
 def delete_topology(author, name):
