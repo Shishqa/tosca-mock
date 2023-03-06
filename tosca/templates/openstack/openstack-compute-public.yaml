@@ -1,0 +1,113 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_name: "openstack-compute-with-public-ip-ansible"
+  template_author: "shishqa"
+  template_version: "1.0"
+
+imports:
+
+- namespace_prefix: openstack
+  file: ../../profiles/openstack/main.yaml
+
+topology_template:
+
+  inputs:
+
+    key_name:
+      type: string
+      description: Name of key-pair to be used for compute instance
+      default: shishqa-toadster
+
+    floating_ip_pool:
+      type: string
+      description: Name of public network to get floating ip from
+      default: ispras
+
+  node_templates:
+
+    os_server:
+      type: openstack:nova.Server
+      directives: [ substitute ]
+      capabilities:
+        host:
+          properties:
+            name: shishqa-test-from-orchestrator
+            disk_size: 10 GiB
+            mem_size: 1 GiB
+            num_cpus: 1
+        os:
+          properties:
+            architecture: LTS-Focal-Fossa
+            distribution: Ubuntu-Server
+            version: "20.04"
+        private_endpoint:
+          properties:
+            network_name: net-for-intra-sandbox
+          attributes:
+            ip_address: { get_attribute: [ SELF, public_address ] }
+      attributes:
+        public_address: { get_attribute: [ os_floating_ip, endpoint, ip_address ] }
+      requirements:
+        - image: os_image
+        - flavor: os_flavor
+        - key_pair: os_key_pair
+        - security_group: os_security_group_default
+      
+    os_key_pair:
+      type: openstack:nova.KeyPair
+      capabilities:
+        key_pair:
+          properties:
+            name: { get_input: [ key_name ] }
+
+    os_image:
+      type: openstack:glance.WebImage
+      directives: [ substitute ]
+      capabilities:
+        image:
+          properties:
+            architecture: { get_property: [ os_server, os, architecture ] }
+            distribution: { get_property: [ os_server, os, distribution ] }
+            version: { get_property: [ os_server, os, version ] }
+
+    os_flavor:
+      type: openstack:nova.Flavor
+      directives: [ substitute ]
+      capabilities:
+        flavor:
+          properties:
+            num_cpus: { get_property: [ os_server, host, num_cpus ] }
+            disk_size: { get_property: [ os_server, host, disk_size ] }
+            mem_size: { get_property: [ os_server, host, mem_size ] }
+
+    os_security_group_default:
+      type: openstack:neutron.SecurityGroup
+      capabilities:
+        security_group:
+          properties:
+            name: default
+
+    os_floating_ip:
+      type: openstack:neutron.FloatingIp
+      directives: [ substitute ]
+      capabilities:
+        endpoint:
+          properties:
+            network_name: { get_input: [ floating_ip_pool ] }
+      requirements:
+        - nova_server: os_server
+
+  substitution_mappings:
+    node_type: tosca.nodes.Compute
+    capabilities:
+      host: [ os_server, host ]
+      os: [ os_server, os ]
+      endpoint: [ os_server, private_endpoint ]
+      scalable: [ os_server, scalable ]
+      binding: [ os_server, binding ]
+    attributes:
+      private_address: [ os_server, private_address ]
+      public_address: [ os_server, public_address ]
+      networks: [ os_server, networks ]
+      ports: [ os_server, ports ]
