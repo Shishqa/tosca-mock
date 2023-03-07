@@ -130,9 +130,12 @@ def add_normalized_template(normalized_template, raw_template):
   if substitution is not None:
     substitution_type = substitution['type']
     if substitution_type not in substitutions:
-      substitutions[substitution_type] = set()
+      substitutions[substitution_type] = {}
 
-    substitutions[substitution_type].add(f'{template_author}/{template_name}')
+    substitutions[substitution_type][f'{template_author}/{template_name}'] = {
+      'author': template_author,
+      'name': template_name,
+    }
   
   return template_author, template_name
 
@@ -153,7 +156,7 @@ def delete_template(author, template_name):
   substitution = template['normalized']['substitution']
   if substitution is not None:
     substitution_type = substitution['type']
-    substitutions[substitution_type].remove(f'{author}/{template_name}')
+    substitutions[substitution_type].pop(f'{author}/{template_name}')
 
   templates[author].pop(template_name)
 
@@ -189,4 +192,4 @@ def get_template(author, template_name):
 def get_substitutions_for_type(node_type):
   if node_type not in substitutions.keys():
     return []
-  return substitutions[node_type]
+  return list(substitutions[node_type].values())

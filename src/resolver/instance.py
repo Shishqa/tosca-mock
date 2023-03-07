@@ -33,6 +33,7 @@ def add_topology(author, name, normalized_template):
   global nodes
   
   topology = instance_model.TopologyTemplateInstance(
+    author,
     name,
     normalized_template
   )

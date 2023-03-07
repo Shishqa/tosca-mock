@@ -8,7 +8,32 @@ metadata:
 topology_template:
   node_templates:
 
-    server_example:
+    hello-world:
+      type: tosca.nodes.WebApplication
+      capabilities:
+        app_endpoint:
+          properties:
+          attributes:
+            ip_address: { get_attribute: [ compute, public_address ] }
+      requirements:
+        - host: nginx
+
+    nginx:
+      type: tosca.nodes.WebServer
+      capabilities:
+        data_endpoint:
+          attributes:
+            ip_address: { get_attribute: [ compute, public_address ] }
+      interfaces:
+        Standard:
+          operations:
+            create: {}
+            configure: {}
+            start: {}
+      requirements:
+        - host: compute
+
+    compute:
       type: tosca.nodes.Compute
       directives: [ substitute ]
       capabilities:

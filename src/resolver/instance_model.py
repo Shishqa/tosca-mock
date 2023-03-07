@@ -1,6 +1,8 @@
 import copy
 import uuid
 
+from . import instance
+
 
 def create_value_atom(node, definition):
   # print(definition)
@@ -301,17 +303,21 @@ class AttributeInstance:
   def render(self):
     if self.mapping is None:
       return {
-        'value': self.value.get()
+        'value': self.get(),
+        'mapping': None,
       }
     return {
-      'mapping': self.mapping.location()
+      'value': self.get(),
+      'mapping': self.mapping.location
     }
-
-  def location(self):
-    return [ self.node.topology.author, self.node.topology.name ]
 
   def map(self, other):
     self.mapping = other
+    if self.is_property:
+      self.mapping.set(self.value)
+    else:
+      self.set(self.mapping.value)
+      
     # self.set(self.mapping.get())
 
   def get(self):
@@ -323,9 +329,26 @@ class AttributeInstance:
     return self.value.get()
 
   def update(self, diff):
+    print(diff)
+    
     if 'value' in diff.keys():
       print(diff['value'])
       self.set(Primitive(self.node, {}, diff['value']))
+    if 'mapping' in diff.keys():
+      mapping = diff['mapping']
+      author = self.node.metadata['substitution_author']
+      topology_name = self.node.metadata['substitution_name']
+      topology = instance.get_topology(author, topology_name)
+      if len(mapping) == 1:
+        self.map(topology.inputs[mapping[0]])
+      elif len(mapping) == 2:
+        self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
+      elif len(mapping) == 3:
+        self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+      else:
+        raise RuntimeError('cannot map')
+      
+      
 
   def set(self, value):
     self.value = value
@@ -540,8 +563,8 @@ class NodeInstance:
     self.name = copy.deepcopy(name)
     self.topology = topology
     self.abstract = True
-    self.substitution = None
-    self.selection = None
+    # self.substitution = None
+    # self.selection = None
 
     self.definition = copy.deepcopy(definition)
 
@@ -549,6 +572,13 @@ class NodeInstance:
     self.find_type()
 
     self.directives = copy.deepcopy(self.definition['directives'])
+    self.metadata = {
+      'substitution_author': None,
+      'substitution_name': None,
+      'selection_author': None,
+      'selection_name': None,
+      'selection_node': None,
+    }
 
     self.attributes = {}
 
@@ -571,6 +601,10 @@ class NodeInstance:
     self.requirements = []
 
   def update(self, diff):
+    if 'metadata' in diff.keys():
+      for m_key, m_value in diff['metadata'].items():
+        self.metadata[m_key] = m_value
+    
     if 'attributes' in diff.keys():
       for attr_name, attr_diff in diff['attributes'].items():
         self.attributes[attr_name].update(attr_diff)
@@ -593,6 +627,8 @@ class NodeInstance:
         render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
+      'directives': self.directives,
+      'metadata': self.metadata,
       'properties': render_properties,
       'attributes': render_attributes,
       'capabilities': { cap_name: cap.render() for cap_name, cap in self.capabilities.items() },
@@ -653,8 +689,9 @@ class NodeInstance:
 
 
 class TopologyTemplateInstance:
-  def __init__(self, name, definition):
+  def __init__(self, author, name, definition):
     self.name = copy.deepcopy(name)
+    self.author = copy.deepcopy(author)
     self.definition = copy.deepcopy(definition)
 
     self.inputs = {}

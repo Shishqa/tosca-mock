@@ -20,6 +20,14 @@ class TopologyInit(BaseModel):
     template_name: str
 
 
+class Action(BaseModel):
+    action_type: str
+    node: str
+    topology_author: str
+    topology_name: str
+    
+
+
 # class Version(BaseModel):
 #   major: int
 #   minor: int
@@ -70,7 +78,16 @@ async def get_topology_issues(author: str, topology_name: str):
     return {
         'author': author,
         'topology_name': topology_name,
-        'issues': compositor.get_issues(instance.get_topology(author, topology_name))
+        'issues': compositor.get_issues(author, topology_name)
+    }
+    
+@app.post("/{author}/{topology_name}/issues")
+async def resolve_topology_issue(author: str, topology_name: str, action: Action):
+    compositor.resolve_issue(author, topology_name, action)
+    return {
+        'author': author,
+        'topology_name': topology_name,
+        'issues': compositor.get_issues(author, topology_name)
     }
 
 @app.delete("/{author}/{topology_name}")
