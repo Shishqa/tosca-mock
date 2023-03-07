@@ -205,14 +205,22 @@ class GetProperty(ValueInstance):
     # print('GETPROP', self.args)
     start = self.args[0]
     try:
+      attr = None
+
       if start == 'SELF':
-        return self.node.find_property(self.args[1:]).get()
+        attr = self.node.find_property(self.args[1:])
       elif start == 'SOURCE':
-        return self.node.source.find_property(self.args[1:]).get()
+        attr = self.node.source.find_property(self.args[1:])
       elif start == 'TARGET':
-        return self.node.target.find_property(self.args[1:]).get()
+        attr = self.node.target.find_property(self.args[1:])
       else:
-        return self.node.topology.nodes[start].find_property(self.args[1:]).get()
+        attr = self.node.topology.nodes[start].find_property(self.args[1:])
+
+      if attr is None:
+        return None
+
+      return attr.get()
+
     except RuntimeError:
       raise RuntimeError(f'{self.node.topology.name}: cannot find property from node {self.node.name}: {self.args}')
 
@@ -231,14 +239,20 @@ class GetAttribute(ValueInstance):
     # print('GETATTR', self.args)
     start = self.args[0]
     try:
+      attr = None
       if start == 'SELF':
-        return self.node.find_attribute(self.args[1:]).get()
+        attr = self.node.find_attribute(self.args[1:])
       elif start == 'SOURCE':
-        return self.node.source.find_attribute(self.args[1:]).get()
+        attr = self.node.source.find_attribute(self.args[1:])
       elif start == 'TARGET':
-        return self.node.target.find_attribute(self.args[1:]).get()
+        attr = self.node.target.find_attribute(self.args[1:])
       else:
-        return self.node.topology.nodes[start].find_attribute(self.args[1:]).get()
+        attr = self.node.topology.nodes[start].find_attribute(self.args[1:])
+
+      if attr is None:
+        return None
+      return attr.get()
+
     except RuntimeError:
       raise RuntimeError(f'{self.node.topology.name}: cannot find attribute from node {self.node.name}: {self.args}')
 
@@ -260,14 +274,22 @@ class AttributeMapping(ValueInstance):
     print(f'SET {self.args}')
     start = self.args[0]
     try:
+      attr = None
+
       if start == 'SELF':
-        return self.node.find_attribute(self.args[1:]).set(value)
+        attr = self.node.find_attribute(self.args[1:])
       elif start == 'SOURCE':
-        return self.node.source.find_attribute(self.args[1:]).set(value)
+        attr = self.node.source.find_attribute(self.args[1:])
       elif start == 'TARGET':
-        return self.node.target.find_attribute(self.args[1:]).set(value)
+        attr = self.node.target.find_attribute(self.args[1:])
       else:
-        return self.node.topology.nodes[start].find_attribute(self.args[1:]).set(value)
+        attr = self.node.topology.nodes[start].find_attribute(self.args[1:])
+
+      if attr is None:
+        return
+
+      attr.set(value)
+
     except RuntimeError:
       raise RuntimeError(f'{self.node.topology.name}: cannot find attribute from node {self.node.name}: {self.args}')
 
@@ -426,7 +448,7 @@ class CapabilityInstance:
     path = args[0]
     if path in self.attributes.keys():
       return self.attributes[path]
-    raise RuntimeError('no attribute')
+    return None
 
 
 class OperationInstance:
@@ -636,7 +658,7 @@ class NodeInstance:
       'requirements': [
         {
           req.name: {
-            'node': req.target.name,
+            'node': req.target.name if req.target is not None else None,
             'capability': None,
             'relationship': req.render(),
           }
@@ -666,10 +688,10 @@ class NodeInstance:
       return self.capabilities[path].find_property(rest)
 
     for r in self.requirements:
-      if r.name == path:
+      if r.name == path and r.target is not None:
         return r.target.find_attribute(rest)
 
-    raise RuntimeError('no property')
+    raise None
 
   def find_attribute(self, args):
     path = args[0]
@@ -682,10 +704,10 @@ class NodeInstance:
       return self.capabilities[path].find_attribute(rest)
 
     for r in self.requirements:
-      if r.name == path:
+      if r.name == path and r.target is not None:
         return r.target.find_attribute(rest)
 
-    raise RuntimeError('no attribute')
+    return None
 
 
 class TopologyTemplateInstance:

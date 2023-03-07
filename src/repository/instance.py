@@ -40,12 +40,13 @@ def add_topology(author, name, normalized_template):
   if author not in topologies.keys():
     topologies[author] = {}
   if name in topologies[author].keys():
-    raise HTTPException(
-      status_code=409,
-      detail={
-        'error': f'Topology {author}/{name} already exists'
-      }
-    )
+    pass
+    # raise HTTPException(
+    #   status_code=409,
+    #   detail={
+    #     'error': f'Topology {author}/{name} already exists'
+    #   }
+    # )
   
   topologies[author][name] = topology
   

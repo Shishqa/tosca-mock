@@ -1,38 +1,25 @@
 import copy
 
-from . import instance_model
-from . import instance
-from . import repository_client
+# from . import instance_model
+# from . import instance
+from ..repository.client import client
 
 #import instance_storage
 #import tosca_repository
 
-
-def instantiate(normalized_template, topology_name, should_resolve=True):
-  # print(f'composing {topology_name}')
-
-  topology = instance_model.TopologyTemplateInstance(
-    topology_name,
-    normalized_template
-  )
-  instance_storage.add_topology(topology)
-
-  if should_resolve:
-    return resolve(topology_name)
-
-  return query(topology_name)
+from .models import Action, SubstitutionAction
 
 
-def get_issues(author, topology_name):
-  topology = instance.get_topology(author, topology_name).render()
+def get_issues(topology):
   issues = []
 
   for node_name, node in topology['topology']['nodes'].items():
     if node['metadata']['substitution_author'] is not None:
-      substitution_issues = get_issues(
+      sub_topology = client.get_topology(
         node['metadata']['substitution_author'],
         node['metadata']['substitution_name'],
       )
+      substitution_issues = get_issues(sub_topology)
       if len(substitution_issues) > 0:
         issues.append({
           'type': 'dependency',
@@ -54,7 +41,7 @@ def get_issues(author, topology_name):
     #   continue
 
     if 'substitute' in node['directives']:
-      options = repository_client.get_substitutions(node['type'])
+      options = client.get_substitutions(node['type'])
       issues.append({
         'type': 'substitute',
         'node': node_name,
@@ -85,60 +72,92 @@ def get_issues(author, topology_name):
   return issues
 
 
-# def resolve(topology_name):
-#   topology_status = query(topology_name)
-#   topology = instance_storage.get_topology(topology_status['name'])
+def resolve(author, topology_name, actions):
+  topology = client.get_topology(author, topology_name)
+  topology = resolve_actions(topology, author, topology_name, actions)
 
-#   for issue in topology_status['issues']:
-#     if issue['type'] == 'substitute':
-#       options = issue['options']
-#       print(f'please choose desired substitution for node {issue["target"]} in {topology_status["name"]}')
-#       substitution_template = options[0]['file']
-#       print(f'- substituting {issue["target"]} -> {substitution_template}')
-#       normalized_template = tosca_repository.get_template(substitution_template)
-#       substitution = instantiate(
-#         normalized_template,
-#         f'{topology_name}_sub_{issue["target"]}',
-#         should_resolve=True
-#       )
-#       target_topology = instance_storage.get_topology(substitution["name"])
-#       map_node(topology.nodes[issue["target"]], target_topology)
-#     if issue['type'] == 'select':
-#       # options = issue['options']
-#       print(f'please choose desired node to replace node {issue["target"]} in {topology_status["name"]}')
-#       # selection = select_node(options)
-#       # if selection is not None:
-#       #   print(f'- selecting {issue["target"]} -> {selection[0]}.{selection[1]}')
-#       #   actions.append({
-#       #     'type': 'select',
-#       #     'target': issue["target"],
-#       #     'topology': selection[0],
-#       #     'node': selection[1]
-#       #   })
-#       #   continue
-#       print('cannot select node in inventory, substitute?')
-#       input('y/n:')
-#       target = topology.nodes[issue["target"]]
-#       options = tosca_repository.get_substitutions_for_type(target.type)
-#       print(f'please choose desired substitution for node {issue["target"]} in {topology_status["name"]}')
-#       substitution_template = options[0]['file']
-#       print(f'- substituting {issue["target"]} -> {substitution_template}')
-#       normalized_template = tosca_repository.get_template(substitution_template)
-#       substitution = instantiate(
-#         normalized_template,
-#         f'{topology_name}_sub_{issue["target"]}',
-#         should_resolve=True
-#       )
-#       target_topology = instance_storage.get_topology(substitution["name"])
-#       map_node(topology.nodes[issue["target"]], target_topology)
+  issues = get_issues(topology)
 
-#   return query(topology_name)
+  actions = []
+  for issue in issues:
+    if issue['type'] == 'substitute':
+      options = issue['options']
+      actions.append(Action(
+        action_type='substitute',
+        data=SubstitutionAction(
+          node=issue['node'],
+          template_author=options[0]['author'],
+          template_name=options[0]['name'],
+        ),
+      ))
+
+  topology = resolve_actions(topology, author, topology_name, actions)
 
 
-def resolve_issue(author, topology_name, action):
+    #   print(f'please choose desired substitution for node {issue["target"]} in {topology_status["name"]}')
+    #   substitution_template = options[0]['file']
+    #   print(f'- substituting {issue["target"]} -> {substitution_template}')
+    #   normalized_template = tosca_repository.get_template(substitution_template)
+    #   substitution = instantiate(
+    #     normalized_template,
+    #     f'{topology_name}_sub_{issue["target"]}',
+    #     should_resolve=True
+    #   )
+    #   target_topology = instance_storage.get_topology(substitution["name"])
+    #   map_node(topology.nodes[issue["target"]], target_topology)
+    # if issue['type'] == 'select':
+    #   # options = issue['options']
+    #   print(f'please choose desired node to replace node {issue["target"]} in {topology_status["name"]}')
+    #   # selection = select_node(options)
+    #   # if selection is not None:
+    #   #   print(f'- selecting {issue["target"]} -> {selection[0]}.{selection[1]}')
+    #   #   actions.append({
+    #   #     'type': 'select',
+    #   #     'target': issue["target"],
+    #   #     'topology': selection[0],
+    #   #     'node': selection[1]
+    #   #   })
+    #   #   continue
+    #   print('cannot select node in inventory, substitute?')
+    #   input('y/n:')
+    #   target = topology.nodes[issue["target"]]
+    #   options = tosca_repository.get_substitutions_for_type(target.type)
+    #   print(f'please choose desired substitution for node {issue["target"]} in {topology_status["name"]}')
+    #   substitution_template = options[0]['file']
+    #   print(f'- substituting {issue["target"]} -> {substitution_template}')
+    #   normalized_template = tosca_repository.get_template(substitution_template)
+    #   substitution = instantiate(
+    #     normalized_template,
+    #     f'{topology_name}_sub_{issue["target"]}',
+    #     should_resolve=True
+    #   )
+    #   target_topology = instance_storage.get_topology(substitution["name"])
+    #   map_node(topology.nodes[issue["target"]], target_topology)
+
+
+
+  # client.update_topology(author, topology_name, topology)
+
+
+  # topology_status = query(topology_name)
+  # topology = instance_storage.get_topology(topology_status['name'])
+
   
-  if action.action_type == 'substitute':
-    map_node(author, topology_name, action)
+
+  # return query(topology_name)
+
+
+def resolve_actions(topology, author, topology_name, actions):
+  for action in actions:
+    if action.action_type == 'substitute':
+      client.create_topology(
+        author,
+        f"{topology_name}_sub_{action.data.node}",
+        action.data.template_author,
+        action.data.template_name
+      )
+      topology = map_node(topology, author, topology_name, action.data)
+  return topology
     
     
   # elif action['type'] == 'select':
@@ -152,17 +171,17 @@ def resolve_issue(author, topology_name, action):
 #   return query(topology.name)
 
 
-def map_node(author, topology_name, action):
+def map_node(topology, author, topology_name, action):
   # print(topology.definition['substitution'])
 
   print('MAP NODE')
 
-  topology = instance.get_topology(author, topology_name).render()
-  target_topology = instance.get_topology(action.topology_author, action.topology_name).render()
+  # topology = client.get_topology(author, topology_name)
+  target_topology = client.get_topology(author, f"{topology_name}_sub_{action.node}")
   
   node = topology['topology']['nodes'][action.node]
-  node['metadata']['substitution_author'] = action.topology_author
-  node['metadata']['substitution_name'] = action.topology_name
+  node['metadata']['substitution_author'] = author
+  node['metadata']['substitution_name'] = f"{topology_name}_sub_{action.node}"
 
   for prop_name, mapping in target_topology['topology']['substitution_mappings']['inputPointers'].items():
     # if prop_name not in node.attributes.keys():
@@ -200,6 +219,8 @@ def map_node(author, topology_name, action):
         prop_name,
       ]
 
+  return topology
+
   # for req_name, mapping in topology.definition['substitution']['requirementPointers'].items():
   #   # print('REQUIREMENTS')
   #   # print(mapping)
@@ -221,7 +242,7 @@ def map_node(author, topology_name, action):
 
   # node.substitution = topology.name
 
-  instance.update_topology(author, topology_name, topology)
+  # client.update_topology(author, topology_name, topology)
 
   # instance_storage.add_topology(node.topology)
   # instance_storage.add_topology(topology)
