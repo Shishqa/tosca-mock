@@ -204,25 +204,25 @@ class GetProperty(ValueInstance):
   def get(self):
     # print('GETPROP', self.args)
     start = self.args[0]
-    try:
-      attr = None
+    # try:
+    attr = None
 
-      if start == 'SELF':
-        attr = self.node.find_property(self.args[1:])
-      elif start == 'SOURCE':
-        attr = self.node.source.find_property(self.args[1:])
-      elif start == 'TARGET':
-        attr = self.node.target.find_property(self.args[1:])
-      else:
-        attr = self.node.topology.nodes[start].find_property(self.args[1:])
+    if start == 'SELF':
+      attr = self.node.find_property(self.args[1:])
+    elif start == 'SOURCE':
+      attr = self.node.source.find_property(self.args[1:])
+    elif start == 'TARGET':
+      attr = self.node.target.find_property(self.args[1:])
+    else:
+      attr = self.node.topology.nodes[start].find_property(self.args[1:])
 
-      if attr is None:
-        return None
+    if attr is None:
+      return None
 
-      return attr.get()
+    return attr.get()
 
-    except RuntimeError:
-      raise RuntimeError(f'{self.node.topology.name}: cannot find property from node {self.node.name}: {self.args}')
+    # except RuntimeError:
+    #   raise RuntimeError(f'{self.node.topology.name}: cannot find property from node {self.node.name}: {self.args}')
 
 
 class GetAttribute(ValueInstance):
@@ -366,7 +366,13 @@ class AttributeInstance:
       elif len(mapping) == 2:
         self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
       elif len(mapping) == 3:
-        self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+        if isinstance(self.node, NodeInstance):
+          self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+        else:
+          node = topology.nodes[mapping[0]]
+          for req in node.requirements:
+            if req.name == mapping[1]:
+          self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
       else:
         raise RuntimeError('cannot map')
       
@@ -442,7 +448,7 @@ class CapabilityInstance:
       if not attr.is_property:
         raise RuntimeError(f'there is the attribute with name {path}, but it is not a property')
       return attr
-    raise RuntimeError('no property')
+    return None
 
   def find_attribute(self, args):
     path = args[0]
@@ -533,6 +539,11 @@ class RelationshipInstance:
     self.target = target
     self.definition = copy.deepcopy(definition)
 
+    self.metadata = {
+      'substitution_author': None,
+      'substitution_name': None,
+    }
+
     self.types = copy.deepcopy(self.definition['types'])
     self.find_type()
 
@@ -557,6 +568,39 @@ class RelationshipInstance:
     for interface_name, interface_def in self.definition['interfaces'].items():
       self.interfaces[interface_name] = InterfaceInstance(self, interface_def)
 
+  def update(self, diff):
+    print(diff)
+    if 'metadata' in diff.keys():
+      for m_key, m_value in diff['metadata'].items():
+        self.metadata[m_key] = m_value
+    
+    if 'attributes' in diff.keys():
+      for attr_name, attr_diff in diff['attributes'].items():
+        self.attributes[attr_name].update(attr_diff)
+      
+    if 'properties' in diff.keys():
+      for prop_name, prop_diff in diff['properties'].items():
+        self.attributes[prop_name].update(prop_diff)
+
+    
+    
+    if 'value' in diff.keys():
+      print(diff['value'])
+      self.set(Primitive(self.node, {}, diff['value']))
+    if 'mapping' in diff.keys():
+      mapping = diff['mapping']
+      author = self.node.metadata['substitution_author']
+      topology_name = self.node.metadata['substitution_name']
+      topology = instance.get_topology(author, topology_name)
+      if len(mapping) == 1:
+        self.map(topology.inputs[mapping[0]])
+      elif len(mapping) == 2:
+        self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
+      elif len(mapping) == 3:
+        self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+      else:
+        raise RuntimeError('cannot map')
+
   def render(self):
     render_properties = {}
     render_attributes = {}
@@ -567,6 +611,7 @@ class RelationshipInstance:
         render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
+      'metadata': self.metadata,
       'properties': render_properties,
       'attributes': render_attributes,
       'interfaces': { interface_name: interface.render() for interface_name, interface in self.interfaces.items() },
@@ -691,7 +736,7 @@ class NodeInstance:
       if r.name == path and r.target is not None:
         return r.target.find_attribute(rest)
 
-    raise None
+    return None
 
   def find_attribute(self, args):
     path = args[0]

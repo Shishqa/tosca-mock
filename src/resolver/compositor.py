@@ -92,6 +92,7 @@ def resolve(author, topology_name, actions):
       ))
 
   topology = resolve_actions(topology, author, topology_name, actions)
+  return topology
 
 
     #   print(f'please choose desired substitution for node {issue["target"]} in {topology_status["name"]}')
@@ -219,26 +220,49 @@ def map_node(topology, author, topology_name, action):
         prop_name,
       ]
 
+
+
+  for req_name, mapping in target_topology['topology']['substitution_mappings']['requirementPointers'].items():
+    print('REQUIREMENTS')
+    print(mapping)
+    # nodeTarget = topology['topology']['nodes'][mapping['nodeTemplateName']]
+
+    for i_req in node['requirements']:
+      i_req_name = list(i_req.keys())[0]
+      if req_name != i_req_name:
+        continue
+      i_req[i_req_name]['relationship']['metadata']['substitution_author'] = author
+      i_req[i_req_name]['relationship']['metadata']['substitution_name'] = f"{topology_name}_sub_{action.node}"
+
+      for prop_name, prop in i_req[i_req_name]['relationship']['properties'].items():
+        prop['mapping'] = [
+          mapping['nodeTemplateName'],
+          mapping['target'],
+          prop_name,
+        ]
+      for attr_name, attr in i_req[i_req_name]['relationship']['attributes'].items():
+        attr['mapping'] = [
+          mapping['nodeTemplateName'],
+          mapping['target'],
+          attr_name,
+        ]
+
   return topology
 
-  # for req_name, mapping in topology.definition['substitution']['requirementPointers'].items():
-  #   # print('REQUIREMENTS')
-  #   # print(mapping)
-  #   nodeTarget = topology.nodes[mapping['nodeTemplateName']]
-  #   reqTargetId = None
-  #   for i in range(len(nodeTarget.requirements)):
-  #     node_relationship = nodeTarget.requirements[i]
-  #     if node_relationship.name == mapping['target']:
-  #       reqTargetId = i
-  #       break
-  #   nodeTarget.requirements.pop(reqTargetId)
+    # reqTargetId = None
+    # for i in range(len(nodeTarget.requirements)):
+    #   node_relationship = nodeTarget.requirements[i]
+    #   if node_relationship.name == mapping['target']:
+    #     reqTargetId = i
+    #     break
+    # nodeTarget.requirements.pop(reqTargetId)
 
-  #   for relationship in node.requirements:
-  #     if relationship.name != req_name:
-  #       continue
-  #     topology\
-  #       .nodes[mapping['nodeTemplateName']]\
-  #       .requirements.append(relationship)
+    # for relationship in node.requirements:
+    #   if relationship.name != req_name:
+    #     continue
+    #   topology\
+    #     .nodes[mapping['nodeTemplateName']]\
+    #     .requirements.append(relationship)
 
   # node.substitution = topology.name
 

@@ -24,9 +24,10 @@ async def get_topology_issues(author: str, topology_name: str):
 
 @app.post("/repository/{author}/topologies/{topology_name}/issues")
 async def resolve_topology_issue(author: str, topology_name: str, actions: List[Action]):
-    compositor.resolve(author, topology_name, actions)
+    update = compositor.resolve(author, topology_name, actions)
     return {
         'author': author,
         'topology_name': topology_name,
-        'issues': compositor.get_issues(client.get_topology(author, topology_name))
+        'update': update,
+        # 'issues': compositor.get_issues(client.get_topology(author, topology_name))
     }

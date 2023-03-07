@@ -112,10 +112,10 @@ def switch_state(author, topology_name, new_state):
       topology = client.get_topology(author, target_name)
       rel = topology['topology']['nodes'][node_name]['requirements'][rel_idx]
       rel_name = list(rel.keys())[0]
-      rel[rel_name]['attributes']['state']['value'] = new_state
+      rel[rel_name]['relationship']['attributes']['state']['value'] = new_state
       client.update_topology(author, target_name, topology)
 
-    print(node_name)
+    print(ent_name)
     
 
 
