@@ -22,7 +22,7 @@ async def create_cluster(config: InstanceConfig):
     return compositor.create_cluster(config)
 
 @app.get("/clusters/{cluster_id}")
-async def create_cluster(cluster_id: str):
+async def query_cluster(cluster_id: str):
     return compositor.query_cluster(cluster_id)
 
 

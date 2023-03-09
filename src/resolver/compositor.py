@@ -41,27 +41,34 @@ def get_config(template, is_substitution=False):
 
 
 def create_cluster(cluster_config):
-
   template_config = get_config(client.get_template(cluster_config.template_id))
   
-  for node_name in template_config.substitutions.keys():
-    if node_name in cluster_config.substitutions.keys():
-      sub_id = create_cluster(cluster_config.substitutions[node_name])
-      print(sub_id)
-      continue
-    
-    auto_substitution = template_config.substitutions[node_name][0]
-
-    sub_id = create_cluster(InstanceConfig(template_id=auto_substitution.template_id))
-    print(sub_id)
-
   template_id = cluster_config.template_id
-  topology_id = client.create_topology(template_id)
-
-  return topology_id
-
-
+  topology = client.create_topology(template_id)
   
+  for input_name in cluster_config.inputs.keys():
+    topology['topology']['inputs'][input_name] = cluster_config.inputs[input_name]
+
+  for node_name in template_config.substitutions.keys():
+    sub_config = None
+
+    if node_name in cluster_config.substitutions.keys():
+      sub_config = cluster_config.substitutions[node_name]
+    else: 
+      auto_substitution = template_config.substitutions[node_name][0]
+      sub_config = InstanceConfig(template_id=auto_substitution.template_id)
+
+    sub_topology = create_cluster(sub_config)
+    sub_topology['topology']['metadata']['substitution'] = topology['id']
+
+    client.update_topology(sub_topology['id'], sub_topology['topology'])
+
+    topology['topology']['nodes'][node_name]['metadata']['substitution'] = sub_topology['id']
+  
+  diff = client.update_topology(topology['id'], topology['topology'])
+  print(diff)
+
+  return client.get_topology(topology['id'])
 
 
 

@@ -729,6 +729,8 @@ class TopologyTemplateInstance:
     self.name = copy.deepcopy(name)
     self.definition = copy.deepcopy(definition)
 
+    self.metadata = self.definition['metadata']
+
     self.inputs = {}
     for input_name, input_def in self.definition['inputs'].items():
       self.inputs[input_name] = AttributeInstance(
@@ -762,17 +764,19 @@ class TopologyTemplateInstance:
       render_inputs[input_name] = input_body.render()
     return {
       'inputs': render_inputs,
+      'metadata': self.metadata,
       'nodes': { node_name: node.render() for node_name, node in self.nodes.items() },
       'substitution_mappings': self.definition['substitution'],
     }
 
   def update(self, diff):
-    if 'topology' not in diff.keys():
-      return
-    elif 'nodes' not in diff['topology'].keys():
+    if 'metadata' in diff.keys():
+      self.metadata = diff['metadata']
+
+    if 'nodes' not in diff.keys():
       return
     
-    for node_name, node_diff in diff['topology']['nodes'].items():
+    for node_name, node_diff in diff['nodes'].items():
       self.nodes[node_name].update(node_diff)
 
   def find_input(self, input_name):
