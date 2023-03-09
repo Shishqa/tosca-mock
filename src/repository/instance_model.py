@@ -92,6 +92,9 @@ class ValueInstance:
   def render(self):
     return self.value
 
+  def set(self, value):
+    self.value = value
+
   def get(self):
     raise RuntimeError('Unimplemented get')
 
@@ -323,15 +326,16 @@ class AttributeInstance:
     self.value = create_value_atom(node, self.definition)
 
   def render(self):
-    if self.mapping is None:
-      return {
-        'value': self.get(),
-        'mapping': None,
-      }
-    return {
-      'value': self.get(),
-      'mapping': self.mapping.location
-    }
+    return self.get()
+    # if self.mapping is None:
+    #   return {
+    #     'value': self.get(),
+    #     'mapping': None,
+    #   }
+    # return {
+    #   'value': self.get(),
+    #   'mapping': self.mapping.location
+    # }
 
   def map(self, other):
     self.mapping = other
@@ -352,32 +356,32 @@ class AttributeInstance:
 
   def update(self, diff):
     print(diff)
-    
-    if 'value' in diff.keys():
-      print(diff['value'])
-      self.set(Primitive(self.node, {}, diff['value']))
-    if 'mapping' in diff.keys():
-      mapping = diff['mapping']
-      author = self.node.metadata['substitution_author']
-      topology_name = self.node.metadata['substitution_name']
-      topology = instance.get_topology(author, topology_name)
-      if len(mapping) == 1:
-        self.map(topology.inputs[mapping[0]])
-      elif len(mapping) == 2:
-        self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
-      elif len(mapping) == 3:
-        if isinstance(self.node, NodeInstance):
-          self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
-        else:
-          node = topology.nodes[mapping[0]]
-          for req in node.requirements:
-            if req.name == mapping[1]:
-          self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
-      else:
-        raise RuntimeError('cannot map')
-      
-      
+    self.value.set(diff)
 
+    
+    # if 'value' in diff.keys():
+    #   print(diff['value'])
+    #   self.set(Primitive(self.node, {}, diff['value']))
+    # if 'mapping' in diff.keys():
+    #   mapping = diff['mapping']
+    #   author = self.node.metadata['substitution_author']
+    #   topology_name = self.node.metadata['substitution_name']
+    #   topology = instance.get_topology(author, topology_name)
+    #   if len(mapping) == 1:
+    #     self.map(topology.inputs[mapping[0]])
+    #   elif len(mapping) == 2:
+    #     self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
+    #   elif len(mapping) == 3:
+    #     if isinstance(self.node, NodeInstance):
+    #       self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+    #     else:
+    #       node = topology.nodes[mapping[0]]
+    #       for req in node.requirements:
+    #         if req.name == mapping[1]:
+    #       self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
+    #   else:
+    #     raise RuntimeError('cannot map')
+      
   def set(self, value):
     self.value = value
     if self.mapping is not None:
@@ -539,11 +543,6 @@ class RelationshipInstance:
     self.target = target
     self.definition = copy.deepcopy(definition)
 
-    self.metadata = {
-      'substitution_author': None,
-      'substitution_name': None,
-    }
-
     self.types = copy.deepcopy(self.definition['types'])
     self.find_type()
 
@@ -569,11 +568,6 @@ class RelationshipInstance:
       self.interfaces[interface_name] = InterfaceInstance(self, interface_def)
 
   def update(self, diff):
-    print(diff)
-    if 'metadata' in diff.keys():
-      for m_key, m_value in diff['metadata'].items():
-        self.metadata[m_key] = m_value
-    
     if 'attributes' in diff.keys():
       for attr_name, attr_diff in diff['attributes'].items():
         self.attributes[attr_name].update(attr_diff)
@@ -581,25 +575,6 @@ class RelationshipInstance:
     if 'properties' in diff.keys():
       for prop_name, prop_diff in diff['properties'].items():
         self.attributes[prop_name].update(prop_diff)
-
-    
-    
-    if 'value' in diff.keys():
-      print(diff['value'])
-      self.set(Primitive(self.node, {}, diff['value']))
-    if 'mapping' in diff.keys():
-      mapping = diff['mapping']
-      author = self.node.metadata['substitution_author']
-      topology_name = self.node.metadata['substitution_name']
-      topology = instance.get_topology(author, topology_name)
-      if len(mapping) == 1:
-        self.map(topology.inputs[mapping[0]])
-      elif len(mapping) == 2:
-        self.map(topology.nodes[mapping[0]].attributes[mapping[1]])
-      elif len(mapping) == 3:
-        self.map(topology.nodes[mapping[0]].capabilities[mapping[1]].attributes[mapping[2]])
-      else:
-        raise RuntimeError('cannot map')
 
   def render(self):
     render_properties = {}
@@ -611,7 +586,6 @@ class RelationshipInstance:
         render_attributes[attr_name] = attr.render()
     return {
       'type': self.type,
-      'metadata': self.metadata,
       'properties': render_properties,
       'attributes': render_attributes,
       'interfaces': { interface_name: interface.render() for interface_name, interface in self.interfaces.items() },
@@ -630,8 +604,6 @@ class NodeInstance:
     self.name = copy.deepcopy(name)
     self.topology = topology
     self.abstract = True
-    # self.substitution = None
-    # self.selection = None
 
     self.definition = copy.deepcopy(definition)
 
@@ -640,11 +612,8 @@ class NodeInstance:
 
     self.directives = copy.deepcopy(self.definition['directives'])
     self.metadata = {
-      'substitution_author': None,
-      'substitution_name': None,
-      'selection_author': None,
-      'selection_name': None,
-      'selection_node': None,
+      'substitution': None,
+      'selection': None,
     }
 
     self.attributes = {}
@@ -756,9 +725,8 @@ class NodeInstance:
 
 
 class TopologyTemplateInstance:
-  def __init__(self, author, name, definition):
+  def __init__(self, name, definition):
     self.name = copy.deepcopy(name)
-    self.author = copy.deepcopy(author)
     self.definition = copy.deepcopy(definition)
 
     self.inputs = {}
@@ -773,8 +741,6 @@ class TopologyTemplateInstance:
     self.nodes = {}
     for node_name, node_def in self.definition["nodeTemplates"].items():
       node = NodeInstance(node_name, self, node_def)
-      node.attributes['tosca_name'].set(Primitive(self, {'type': 'string'}, node_name))
-      node.attributes['tosca_id'].set(Primitive(self, {'type': 'string'}, uuid.uuid4().hex))
       self.nodes[node_name] = node
 
     for node_name, node in self.nodes.items():
@@ -795,11 +761,9 @@ class TopologyTemplateInstance:
     for input_name, input_body in self.inputs.items():
       render_inputs[input_name] = input_body.render()
     return {
-      'topology': {
-        'inputs': render_inputs,
-        'nodes': { node_name: node.render() for node_name, node in self.nodes.items() },
-        'substitution_mappings': self.definition['substitution'],
-      }
+      'inputs': render_inputs,
+      'nodes': { node_name: node.render() for node_name, node in self.nodes.items() },
+      'substitution_mappings': self.definition['substitution'],
     }
 
   def update(self, diff):

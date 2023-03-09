@@ -1,6 +1,8 @@
 from fastapi import HTTPException
 import jsondiff
 
+import copy
+import uuid
 import os
 import pickle
 
@@ -28,27 +30,19 @@ def dump_database():
     pickle.dump(topologies, file)
 
 
-def add_topology(author, name, normalized_template):
+def add_topology(normalized_template):
   global topologies
   global nodes
   
-  topology = instance_model.TopologyTemplateInstance(
-    author,
-    name,
-    normalized_template
-  )
-  if author not in topologies.keys():
-    topologies[author] = {}
-  if name in topologies[author].keys():
-    pass
-    # raise HTTPException(
-    #   status_code=409,
-    #   detail={
-    #     'error': f'Topology {author}/{name} already exists'
-    #   }
-    # )
-  
-  topologies[author][name] = topology
+  topology = copy.deepcopy(normalized_template)
+  for node_name, node in topology.nodes.items():
+    node.attributes['tosca_name'].set(instance_model.Primitive(node, {'type': 'string'}, node_name))
+    node.attributes['tosca_id'].set(instance_model.Primitive(node, {'type': 'string'}, uuid.uuid4().hex))
+
+  topology_id = uuid.uuid4().hex
+  while topology_id in topologies.keys():
+    topology_id = uuid.uuid4().hex
+  topologies[topology_id] = topology
   
   # for node_name, node in topology.nodes.items():
   #   if node.type not in nodes.keys():
@@ -56,55 +50,42 @@ def add_topology(author, name, normalized_template):
   #   nodes[node.type][topology.name + '$' + node_name] = node
 
   dump_database()
+  return topology_id
 
 
 
-def update_topology(author, name, updated_topology):
-  topology = get_topology(author, name)
+def update_topology(topology_id, updated_topology):
+  topology = get_topology(topology_id)
   
   diff = jsondiff.diff(topology.render(), updated_topology, marshal=True)
   print(diff)
   
   topology.update(diff)
-  topologies[author][name] = topology
+  topologies[topology_id] = topology
   
   dump_database()
   return diff
   
 
-
-def get_authors():
+def get_topologies():
   return list(topologies.keys())
 
 
-def get_topologies(author):
-  if author not in topologies.keys():
-    return []
-  return list(topologies[author].keys())
-
-
-def get_topology(author, topology_name):
-  if author not in topologies.keys():
+def get_topology(topology_id):
+  if topology_id not in topologies.keys():
     raise HTTPException(
       status_code=404,
       detail={
-        'error': f'Author {author} not found'
+        'error': f'Topology {topology_id} not found'
       }
     )
-  elif topology_name not in topologies[author].keys():
-    raise HTTPException(
-      status_code=404,
-      detail={
-        'error': f'Topology {topology_name} not found for {author}'
-      }
-    )
-  return topologies[author][topology_name]
+  return topologies[topology_id]
 
 
-def delete_topology(author, name):
+def delete_topology(topology_id):
   global topologies
   
-  topology = get_topology(author, name)
-  topologies[author].pop(name)
+  topology = get_topology(topology_id)
+  topologies.pop(topology_id)
   
   dump_database()

@@ -34,54 +34,29 @@ async def get_substitutions(type_name: str):
         'substitutions': definition.get_substitutions_for_type(type_name)
     }
 
-@app.get("/repository")
-async def get_authors():
-    definition_authors = set(definition.get_authors())
-    instance_authors = set(instance.get_authors())
-    return {
-        'authors': list(definition_authors.union(instance_authors))
-    }
-
-@app.get("/repository/{author}")
-async def get_author_info(author: str):
-    return {
-        'author': author,
-        'templates': definition.get_templates(author),
-        'topologies': instance.get_topologies(author)
-    }
-
 
 # Templates
 
-@app.get("/repository/{author}/templates")
-async def get_author_info(author: str):
-    return definition.get_templates(author)
+@app.get("/templates")
+async def get_templates():
+    return definition.get_templates()
 
-@app.post("/repository/{author}/templates/{template_name}")
-async def add_template(author: str, template_name: str, template: bytes = File()):
-    definition.add_template(author, template_name, template)
+@app.post("/templates")
+async def add_template(template: bytes = File()):
+    template_id = definition.add_template(template)
     return {
-        'author': author,
-        'template_name': template_name
+        'id': template_id,
+        'template': definition.get_template(template_id)['normalized'].render()
     }
 
-@app.get("/repository/{author}/templates/{template}")
-async def get_template(author: str, template: str):
+@app.get("/templates/{template_id:path}")
+async def get_template(template_id: str):
     return {
-        'author': author,
-        'template_name': template,
-        'template': definition.get_template(author, template)['normalized']
-    }
-    
-@app.get("/repository/{author}/templates/{template}/raw")
-async def get_template(author: str, template: str):
-    return {
-        'author': author,
-        'template_name': template,
-        'template': definition.get_template(author, template)['raw']
+        'id': template_id,
+        'template': definition.get_template(template_id)['normalized'].render()
     }
 
-@app.delete("/repository/{author}/templates/{template}")
+@app.delete("/templates/{template_id:path}")
 async def delete_template(author: str, template: str):
     definition.delete_template(author, template)
 
@@ -89,38 +64,41 @@ async def delete_template(author: str, template: str):
 # Topologies
 
 class TopologyInit(BaseModel):
-    template_author: str
-    template_name: str
+    template_id: str
 
-@app.get("/repository/{author}/topologies")
-async def get_author_info(author: str):
-    return instance.get_topologies(author)
 
-@app.post("/repository/{author}/topologies/{topology_name}")
-async def add_topology(author: str, topology_name: str, topology_init: TopologyInit):
+@app.get("/topologies")
+async def get_topologies():
+    return instance.get_topologies()
+
+@app.post("/topologies")
+async def add_topology(topology_init: TopologyInit):
     normalized_template = definition.get_template(
-        topology_init.template_author,
-        topology_init.template_name
+        topology_init.template_id
     )['normalized']
-    instance.add_topology(author, topology_name, normalized_template)
-    return instance.get_topology(author, topology_name).render()
-
-
-@app.put("/repository/{author}/topologies/{topology_name}")
-async def update_topology(author: str, topology_name: str, topology_json: Request):
-    diff = instance.update_topology(author, topology_name, await topology_json.json())
+    topology_id = instance.add_topology(normalized_template)
     return {
-        'author': author,
-        'topology_name': topology_name,
+        'id': topology_id,
+        'topology': instance.get_topology(topology_id).render()
+    }
+
+@app.put("/topologies/{topology_id}")
+async def update_topology(topology_id: str, topology_json: Request):
+    diff = instance.update_topology(topology_id, await topology_json.json())
+    return {
+        'id': topology_id,
         'diff': diff,
     }
 
 
-@app.get("/repository/{author}/topologies/{topology_name}")
-async def get_topology(author: str, topology_name: str):
-    return instance.get_topology(author, topology_name).render()
+@app.get("/topologies/{topology_id}")
+async def get_topology(topology_id: str):
+    return {
+        'id': topology_id,
+        'topology': instance.get_topology(topology_id).render()
+    }
 
 
-@app.delete("/repository/{author}/topologies/{topology_name}")
-async def delete_topology(author: str, topology_name: str):
-    instance.delete_topology(author, topology_name)
+@app.delete("/topologies/{topology_id}")
+async def delete_topology(topology_id: str):
+    instance.delete_topology(topology_id)

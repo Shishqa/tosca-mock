@@ -17,12 +17,44 @@ topology_template:
     key_name:
       type: string
       description: Name of key-pair to be used for compute instance
-      default: shishqa-toadster
+      default: null
 
     floating_ip_pool:
       type: string
       description: Name of public network to get floating ip from
-      default: ispras
+      default: null
+
+    network:
+      type: string
+      default: null
+
+    instance_name:
+      type: string
+      default: null
+
+    disk_size:
+      type: scalar-unit.size
+      default: 10 GiB
+
+    mem_size:
+      type: scalar-unit.size
+      default: 1 GiB
+
+    num_cpus:
+      type: integer
+      default: 1
+
+    os_architecture:
+      type: string
+      default: LTS-Focal-Fossa
+
+    os_distribution:
+      type: string
+      default: Ubuntu-Server
+
+    os_version:
+      type: version
+      default: "20.04"
 
   node_templates:
 
@@ -32,18 +64,18 @@ topology_template:
       capabilities:
         host:
           properties:
-            name: shishqa-test-from-orchestrator
-            disk_size: 10 GiB
-            mem_size: 1 GiB
-            num_cpus: 1
+            name: { get_input: [ instance_name ] }
+            disk_size: { get_input: [ disk_size ] }
+            mem_size: { get_input: [ mem_size ] }
+            num_cpus: { get_input: [ num_cpus ] }
         os:
           properties:
-            architecture: LTS-Focal-Fossa
-            distribution: Ubuntu-Server
-            version: "20.04"
+            architecture: { get_input: [ os_architecture ] }
+            distribution: { get_input: [ os_distribution ] }
+            version: { get_input: [ os_version ] }
         private_endpoint:
           properties:
-            network_name: net-for-intra-sandbox
+            network_name: { get_input: [ network ] }
           attributes:
             ip_address: { get_attribute: [ SELF, public_address ] }
       attributes:

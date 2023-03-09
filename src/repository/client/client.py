@@ -19,9 +19,9 @@ def get_substitutions(type_name):
         )
 
 
-def get_template(author, template_name):
+def get_template(template_id):
     try:
-        r = httpx.get(f"{REPOSITORY_ADDRESS}/repository/{author}/templates/{template_name}")
+        r = httpx.get(f"{REPOSITORY_ADDRESS}/templates/{template_id}")
         r.raise_for_status()
         return r.json()
     except httpx.HTTPError as exc:
@@ -34,11 +34,11 @@ def get_template(author, template_name):
         )
 
 
-def create_topology(author, topology_name, template_author, template_name):
+def create_topology(template_id):
     try:
         r = httpx.post(
-            f"{REPOSITORY_ADDRESS}/repository/{author}/topologies/{topology_name}",
-            json={ 'template_author': template_author, 'template_name': template_name  },
+            f"{REPOSITORY_ADDRESS}/topologies",
+            json={ 'template_id': template_id },
         )
         r.raise_for_status()
         return r.json()
@@ -52,9 +52,9 @@ def create_topology(author, topology_name, template_author, template_name):
         )
 
 
-def get_topology(author, topology_name):
+def get_topology(topology_id):
     try:
-        r = httpx.get(f"{REPOSITORY_ADDRESS}/repository/{author}/topologies/{topology_name}")
+        r = httpx.get(f"{REPOSITORY_ADDRESS}/topologies/{topology_id}")
         r.raise_for_status()
         return r.json()
     except httpx.HTTPError as exc:
@@ -67,10 +67,10 @@ def get_topology(author, topology_name):
         )
 
 
-def update_topology(author, topology_name, updated_topology):
+def update_topology(topology_id, updated_topology):
     try:
         r = httpx.put(
-            f"{REPOSITORY_ADDRESS}/repository/{author}/topologies/{topology_name}",
+            f"{REPOSITORY_ADDRESS}/topologies/{topology_id}",
             json=updated_topology
         )
         r.raise_for_status()
@@ -85,10 +85,10 @@ def update_topology(author, topology_name, updated_topology):
         )
 
 
-def delete_topology(author, topology_name):
+def delete_topology(topology_id):
     try:
         r = httpx.delete(
-            f"{REPOSITORY_ADDRESS}/repository/{author}/topologies/{topology_name}"
+            f"{REPOSITORY_ADDRESS}/topologies/{topology_id}"
         )
         r.raise_for_status()
         return r.json()

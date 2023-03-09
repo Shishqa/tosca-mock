@@ -7,28 +7,89 @@ from ..repository.client import client
 #import instance_storage
 #import tosca_repository
 
-from .models import Action, SubstitutionAction
+from .models import Config, InstanceConfig
+
+
+def get_config(template, is_substitution=False):
+  config = Config(template_id=template['id'])
+
+  for input_name, input_value in template['template']['inputs'].items():
+    config.inputs[input_name] = input_value
+
+  for node_name, node in template['template']['nodes'].items():
+    if len(node['directives']) == 0:
+      continue
+
+    options = client.get_substitutions(node['type'])
+    config.substitutions[node_name] = [
+      get_config(client.get_template(op)) for op in options['substitutions']
+    ]
+  
+  return config
+
+    # issues.append({
+    #   'type': 'substitute',
+    #   'node': node_name,
+    #   'options': [ { 
+    #     'author': op['author'], 
+    #     'name': op['name'], 
+    #     'issues': get_issues(client.get_template(op['author'], op['name'])['template']) 
+    #     } for op in options['substitutions'] 
+    #   ],
+    # })
+
+
+
+def create_cluster(cluster_config):
+
+  template_config = get_config(client.get_template(cluster_config.template_id))
+  
+  for node_name in template_config.substitutions.keys():
+    if node_name in cluster_config.substitutions.keys():
+      sub_id = create_cluster(cluster_config.substitutions[node_name])
+      print(sub_id)
+      continue
+    
+    auto_substitution = template_config.substitutions[node_name][0]
+
+    sub_id = create_cluster(InstanceConfig(template_id=auto_substitution.template_id))
+    print(sub_id)
+
+  template_id = cluster_config.template_id
+  topology_id = client.create_topology(template_id)
+
+  return topology_id
+
+
+  
+
 
 
 def get_issues(topology):
   issues = []
 
+  for input_name, input_value in topology['topology']['inputs'].items():
+    if input_value == "":
+      issues.append({
+        'type': 'input',
+        'name': input_name,
+      })
+
   for node_name, node in topology['topology']['nodes'].items():
-    if node['metadata']['substitution_author'] is not None:
-      sub_topology = client.get_topology(
-        node['metadata']['substitution_author'],
-        node['metadata']['substitution_name'],
-      )
-      substitution_issues = get_issues(sub_topology)
-      if len(substitution_issues) > 0:
-        issues.append({
-          'type': 'dependency',
-          'node': node_name,
-          'substitution_author': node['metadata']['substitution_author'],
-          'substitution_name': node['metadata']['substitution_name'],
-          'issues': substitution_issues,
-        })
-      continue
+    # if node['metadata']['substitution'] is not None:
+    #   substitution = node['metadata']['substitution'].split('/')
+    #   sub_topology = client.get_topology(
+    #     substitution[0],
+    #     substitution[1],
+    #   )
+    #   substitution_issues = get_issues(sub_topology)
+    #   if len(substitution_issues) > 0:
+    #     issues.append({
+    #       'type': 'dependency',
+    #       'node': node_name,
+    #       'issues': substitution_issues,
+    #     })
+    #   continue
 
     # if node.selection is not None:
     #   topology = query(node.selection[0])
@@ -45,7 +106,12 @@ def get_issues(topology):
       issues.append({
         'type': 'substitute',
         'node': node_name,
-        'options': options['substitutions']
+        'options': [ { 
+          'author': op['author'], 
+          'name': op['name'], 
+          'issues': get_issues(client.get_template(op['author'], op['name'])['template']) 
+          } for op in options['substitutions'] 
+        ],
       })
       continue
 
@@ -157,7 +223,8 @@ def resolve_actions(topology, author, topology_name, actions):
         action.data.template_author,
         action.data.template_name
       )
-      topology = map_node(topology, author, topology_name, action.data)
+      topology['topology']['nodes'][action.data.node]['metadata']['substitution'] = f"{author}/{topology_name}_sub_{action.data.node}"
+      # topology = map_node(topology, author, topology_name, action.data)
   return topology
     
     

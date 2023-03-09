@@ -6,13 +6,20 @@ metadata:
   template_version: "1.0"
 
 topology_template:
+  inputs:
+
+    test:
+      type: string
+      default: null
+
   node_templates:
 
     hello-world:
       type: tosca.nodes.WebApplication
+      metadata:
+        substitution: shishqa/string
       capabilities:
         app_endpoint:
-          properties:
           attributes:
             ip_address: { get_attribute: [ compute, public_address ] }
       requirements:

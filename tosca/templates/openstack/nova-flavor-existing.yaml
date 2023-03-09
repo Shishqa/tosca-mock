@@ -16,7 +16,7 @@ topology_template:
   
     num_cpus:
       type: integer
-      default: -1
+      default: null
 
     mem_size:
       type: scalar-unit.size

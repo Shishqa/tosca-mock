@@ -8,6 +8,8 @@ import copy
 import uuid
 import io
 
+from . import instance_model
+
 
 templates = {}
 substitutions = {}
@@ -105,91 +107,73 @@ def add_normalized_template(normalized_template, raw_template):
       }
     )
     
-  template_author = normalized_template['metadata']['template_author']
-  if template_author not in templates.keys():
-    templates[template_author] = {}
-  
+  template_author = normalized_template['metadata']['template_author']  
   template_name = normalized_template['metadata']['template_name']
-  if template_name in templates[template_author].keys():
+  # TODO: handle version
+  template_version = normalized_template['metadata']['template_version']
+
+  template_id = f"{template_author}/{template_name}"
+
+  if template_id in templates.keys():
     raise HTTPException(
       status_code=409,
       detail={
-        'error': f'Template {template_author}/{template_name} already exists'
+        'error': f'Template {template_id} already exists'
       }
     )
+
+  topology = instance_model.TopologyTemplateInstance(
+    template_id,
+    normalized_template
+  )
   
-  templates[template_author][template_name] = {
-    'normalized': normalized_template,
+  templates[template_id] = {
+    'normalized': topology,
     'raw': raw_template
   }
 
-  # TODO: handle version
-  template_version = normalized_template['metadata']['template_version']
-  
   substitution = normalized_template['substitution']
   if substitution is not None:
     substitution_type = substitution['type']
     if substitution_type not in substitutions:
-      substitutions[substitution_type] = {}
-
-    substitutions[substitution_type][f'{template_author}/{template_name}'] = {
-      'author': template_author,
-      'name': template_name,
-    }
-  
-  return template_author, template_name
+      substitutions[substitution_type] = set()
+    substitutions[substitution_type].add(template_id)
+  return template_id
 
 
-def add_template(author, name, template: bytes):
+def add_template(template: bytes):
   normalized_template = parse(io.BytesIO(template))
-  normalized_template['metadata']['template_author'] = author
-  normalized_template['metadata']['template_name'] = name
-  normalized_template['metadata']['version'] = '1.0.0'
   add_normalized_template(normalized_template, yaml.safe_load(template))
 
 
-def delete_template(author, template_name):
+def delete_template(template_id):
   global templates
   global substitutions
   
-  template = get_template(author, template_name)
-  substitution = template['normalized']['substitution']
+  template = get_template(template_id)
+  substitution = template['normalized']['substitution_mappings']
   if substitution is not None:
     substitution_type = substitution['type']
-    substitutions[substitution_type].pop(f'{author}/{template_name}')
+    substitutions[substitution_type].pop(template_id)
 
-  templates[author].pop(template_name)
+  templates.pop(template_id)
 
 
-def get_authors():
+def get_templates():
   return list(templates.keys())
 
 
-def get_templates(author):
-  if author not in templates.keys():
-    return []
-  return list(templates[author].keys())
-
-
-def get_template(author, template_name):
-  if author not in templates.keys():
+def get_template(template_id):
+  if template_id not in templates.keys():
     raise HTTPException(
       status_code=404,
       detail={
-        'error': f'Author {author} not found'
+        'error': f'Template {template_id} not found'
       }
     )
-  elif template_name not in templates[author].keys():
-    raise HTTPException(
-      status_code=404,
-      detail={
-        'error': f'Template {template_name} not found for {author}'
-      }
-    )
-  return templates[author][template_name]
-
+  return templates[template_id]
 
 def get_substitutions_for_type(node_type):
   if node_type not in substitutions.keys():
     return []
-  return list(substitutions[node_type].values())
+  return list(substitutions[node_type])
