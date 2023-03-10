@@ -63,13 +63,19 @@ def create_cluster(cluster_config):
 
     client.update_topology(sub_topology['id'], sub_topology['topology'])
 
-    topology['topology']['nodes'][node_name]['metadata']['substitution'] = sub_topology['id']
+    topology['topology']['nodes'][node_name]['metadata']['substitution'] = \
+      sub_topology['id']
   
   diff = client.update_topology(topology['id'], topology['topology'])
   print(diff)
 
   return client.get_topology(topology['id'])
 
+
+
+# def query_cluster(topology_id):
+#   topology = client.get_topology(topology_id)
+  
 
 
 def get_issues(topology):

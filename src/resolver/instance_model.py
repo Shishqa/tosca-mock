@@ -771,7 +771,8 @@ class TopologyTemplateInstance:
 
   def update(self, diff):
     if 'metadata' in diff.keys():
-      self.metadata = diff['metadata']
+      for key_name in diff['metadata'].keys():
+        self.metadata[key_name] = diff['metadata'][key_name]
 
     if 'nodes' not in diff.keys():
       return
