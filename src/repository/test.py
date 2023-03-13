@@ -6,6 +6,9 @@ from puccini_model import *
 
 import sys, argparse, puccini.tosca, ard
 
+
+from model import *
+
 parser = argparse.ArgumentParser(description='Compile TOSCA')
 parser.add_argument('url', help='URL to TOSCA file or CSAR')
 parser.add_argument('-i', '--input', dest='inputs', nargs='*', action='extend', help='specify input (format is name=value)')
@@ -29,7 +32,12 @@ try:
     
     # print(clout)
     
-    ard.write(tosca.render(), sys.stdout, format='json')
+    # ard.write(tosca.render(), sys.stdout, format='json')
+    
+    instance = InstanceModel.parse_obj(tosca.render())
+    
+    ard.write(instance.dict(), sys.stdout, format='json')
+    
 except puccini.tosca.Problems as e:
     print('Problems:', file=sys.stderr)
     for problem in e.problems:

@@ -26,8 +26,12 @@ topology_template:
               outputs:
                 ip_address: [ SELF, endpoint, ip_address ]
               implementation:
-                primary: artifacts/os_floating_ip_create.yaml
+                primary: create_playbook
                 operation_host: ORCHESTRATOR
+      artifacts:
+        create_playbook:
+          type: tosca.artifacts.File
+          file: artifacts/os_floating_ip_create.yaml
 
   substitution_mappings:
     node_type: openstack:neutron.FloatingIp

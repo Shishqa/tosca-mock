@@ -308,7 +308,7 @@ class AttributeInstance:
     self.value = create_value_atom(node, self.definition)
 
   def render(self):
-    return self.get()
+    return self.value.render()
     # if self.mapping is None:
     #   return {
     #     'value': self.get(),
@@ -659,7 +659,14 @@ class NodeInstance:
             'relationship': req.render(),
           }
         } for req in self.requirements
-      ]
+      ],
+      'artifacts': {
+        art_name: {
+          'type': 'tosca.artifacts.File', # FIXME: @shishqa
+          'file': art['sourcePath'],
+          'deploy_path': art['targetPath'],
+        } for art_name, art in self.definition['artifacts'].items()
+      }
     }
 
   def find_type(self):
@@ -723,6 +730,43 @@ class TopologyTemplateInstance:
         input_def,
         is_property=True
       )
+    
+    self.substitution_mappings = {
+      'capabilities': {},
+      'properties': {},
+      'attributes': {},
+      'requirements': {},
+    }
+    for vertex_id, vertex in self.definition['vertexes'].items():
+      if vertex['metadata']['puccini']['kind'] != 'Substitution':
+        continue
+      
+      self.substitution_mappings['node_type'] = vertex['properties']['type']
+      for prop_name, input_name in vertex['properties']['inputs'].items():
+        self.substitution_mappings['properties'][prop_name] = [ input_name ]
+      
+      for edge in vertex['edgesOut']:
+        if edge['metadata']['puccini']['kind'] == 'CapabilityPointer':
+          name = edge['properties']['name']
+          target = edge['properties']['target']
+          self.substitution_mappings['capabilities'][name] = [
+            self.definition['vertexes'][edge['targetID']]['properties']['name'],
+            target
+          ]
+        if edge['metadata']['puccini']['kind'] == 'RequiementPointer':
+          name = edge['properties']['name']
+          target = edge['properties']['target']
+          self.substitution_mappings['requirements'][name] = [
+            self.definition['vertexes'][edge['targetID']]['properties']['name'],
+            target
+          ]
+        if edge['metadata']['puccini']['kind'] == 'AttributePointer':
+          name = edge['properties']['name']
+          target = edge['properties']['target']
+          self.substitution_mappings['attributes'][name] = [
+            self.definition['vertexes'][edge['targetID']]['properties']['name'],
+            target
+          ]
 
     self.nodes = {}
     for vertex_id, vertex in self.definition['vertexes'].items():
@@ -746,12 +790,15 @@ class TopologyTemplateInstance:
   def render(self):
     render_inputs = {}
     for input_name, input_body in self.inputs.items():
-      render_inputs[input_name] = input_body.render()
+      render_inputs[input_name] = {
+        'type': input_body.value.meta['type'],
+        'default': input_body.get()
+      }
     return {
       'inputs': render_inputs,
       'metadata': self.metadata,
       'nodes': { node_name: node.render() for node_name, node in self.nodes.items() },
-      # 'substitution_mappings': self.definition['substitution'],
+      'substitution_mappings': self.substitution_mappings,
     }
 
   def update(self, diff):

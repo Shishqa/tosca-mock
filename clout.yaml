@@ -2,9 +2,9 @@ version: "1.0"
 metadata:
   history:
     - description: compile
-      timestamp: "2023-03-10T13:10:56.891727146+03:00"
+      timestamp: "2023-03-12T12:42:45.928164066+03:00"
     - description: resolve
-      timestamp: "2023-03-10T13:10:56.895897302+03:00"
+      timestamp: "2023-03-12T12:42:45.93984129+03:00"
   puccini:
     scriptlets:
       tosca:
@@ -1161,14 +1161,142 @@ metadata:
 properties:
   tosca:
     description: ""
-    inputs: {}
+    inputs:
+      hostname:
+        $meta:
+          type: string
+        $primitive: hello
     metadata:
       template_author: shishqa
-      template_name: neutron-floating-ip-ansible
+      template_name: nova-server-ansible
       template_version: "1.0"
     outputs: {}
 vertexes:
-  _2MonyQtVebKBmZv9colNcq10UFb:
+  _2MuOnFXF6fnKYdnbIl3pCSiw3or:
+    metadata:
+      puccini:
+        kind: Substitution
+        version: "1.0"
+    properties:
+      inputs:
+        test: hostname
+      properties: {}
+      type: nova.Server
+      typeMetadata: {}
+    edgesOut:
+      - metadata:
+          puccini:
+            kind: CapabilityPointer
+            version: "1.0"
+        properties:
+          name: host
+          target: host
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: CapabilityPointer
+            version: "1.0"
+        properties:
+          name: os
+          target: os
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: CapabilityPointer
+            version: "1.0"
+        properties:
+          name: scalable
+          target: scalable
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: CapabilityPointer
+            version: "1.0"
+        properties:
+          name: binding
+          target: binding
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: CapabilityPointer
+            version: "1.0"
+        properties:
+          name: private_endpoint
+          target: private_endpoint
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: RequirementPointer
+            version: "1.0"
+        properties:
+          name: flavor
+          target: flavor
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: RequirementPointer
+            version: "1.0"
+        properties:
+          name: key_pair
+          target: key_pair
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: RequirementPointer
+            version: "1.0"
+        properties:
+          name: security_group
+          target: security_group
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: RequirementPointer
+            version: "1.0"
+        properties:
+          name: image
+          target: image
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: AttributePointer
+            version: "1.0"
+        properties:
+          name: networks
+          target: networks
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: AttributePointer
+            version: "1.0"
+        properties:
+          name: ports
+          target: ports
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: AttributePointer
+            version: "1.0"
+        properties:
+          name: security_groups
+          target: security_groups
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: AttributePointer
+            version: "1.0"
+        properties:
+          name: private_address
+          target: private_address
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+      - metadata:
+          puccini:
+            kind: AttributePointer
+            version: "1.0"
+        properties:
+          name: public_address
+          target: public_address
+        targetID: _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ
+  _2MuOnGKrxgJcAQ6AQ2DNUFltGMQ:
     metadata:
       puccini:
         kind: NodeTemplate
@@ -1176,6 +1304,38 @@ vertexes:
     properties:
       artifacts: {}
       attributes:
+        networks:
+          $meta:
+            key:
+              type: string
+            type: map
+            value:
+              type: tosca::NetworkInfo
+              typeDescription: The Network type is a complex TOSCA data type used to describe logical network information.
+          $primitive: null
+        ports:
+          $meta:
+            key:
+              type: string
+            type: map
+            value:
+              type: tosca::PortInfo
+              typeDescription: The PortInfo type is a complex TOSCA data type used to describe network port information.
+          $primitive: null
+        private_address:
+          $meta:
+            type: string
+          $primitive: null
+        public_address:
+          $meta:
+            type: string
+          $primitive: null
+        security_groups:
+          $meta:
+            element:
+              type: string
+            type: list
+          $primitive: null
         state:
           $meta:
             description: The state of the node instance.
@@ -1192,18 +1352,159 @@ vertexes:
             type: string
           $primitive: null
       capabilities:
-        endpoint:
+        binding:
+          attributes: {}
+          description: ""
+          location:
+            column: 7
+            path: topology_template.node_templates["os_server"].capabilities["binding"]
+            row: 27
+          maxRelationshipCount: -1
+          minRelationshipCount: 0
+          properties: {}
+          types:
+            tosca::Bindable:
+              description: A node type that includes the Bindable capability indicates that it can be bound to a logical network association via a network port.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.14
+                tosca.canonical-name: tosca::Bindable
+                tosca.normative: "true"
+              parent: tosca::Node
+            tosca::Node:
+              description: The Node capability indicates the base capabilities of a TOSCA Node Type.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.2
+                tosca.canonical-name: tosca::Node
+                tosca.normative: "true"
+              parent: tosca::Root
+            tosca::Root:
+              description: This is the default (root) TOSCA Capability Type definition that all other TOSCA Capability Types derive from.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.1
+                tosca.canonical-name: tosca::Root
+                tosca.normative: "true"
+        feature:
+          attributes: {}
+          description: ""
+          location:
+            column: 7
+            path: topology_template.node_templates["os_server"].capabilities["feature"]
+            row: 27
+          maxRelationshipCount: -1
+          minRelationshipCount: 0
+          properties: {}
+          types:
+            tosca::Node:
+              description: The Node capability indicates the base capabilities of a TOSCA Node Type.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.2
+                tosca.canonical-name: tosca::Node
+                tosca.normative: "true"
+              parent: tosca::Root
+            tosca::Root:
+              description: This is the default (root) TOSCA Capability Type definition that all other TOSCA Capability Types derive from.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.1
+                tosca.canonical-name: tosca::Root
+                tosca.normative: "true"
+        host:
           attributes:
-            ip_address:
+            openstack_id:
               $meta:
-                description: 'Note: This is the IP address as propagated up by the associated node''s host (Compute) container.'
                 type: string
               $primitive: null
           description: ""
           location:
-            column: 5
-            path: topology_template.node_templates["os_floating_ip"].capabilities["endpoint"]
-            row: 17
+            column: 7
+            path: topology_template.node_templates["os_server"].capabilities["host"]
+            row: 27
+          maxRelationshipCount: -1
+          minRelationshipCount: 0
+          properties: {}
+          types:
+            nova.Server:
+              parent: tosca::Compute
+            tosca::Compute:
+              description: The Compute capability, when included on a Node Type or Template definition, indicates that the node can provide hosting on a named compute resource.
+              metadata:
+                role: host
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.3
+                tosca.canonical-name: tosca::Compute
+                tosca.normative: "true"
+              parent: tosca::Container
+            tosca::Container:
+              description: The Container capability, when included on a Node Type or Template definition, indicates that the node can act as a container for (or a host for) one or more other declared Node Types.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.6
+                tosca.canonical-name: tosca::Container
+                tosca.normative: "true"
+              parent: tosca::Root
+            tosca::Root:
+              description: This is the default (root) TOSCA Capability Type definition that all other TOSCA Capability Types derive from.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.1
+                tosca.canonical-name: tosca::Root
+                tosca.normative: "true"
+        os:
+          attributes:
+            openstack_id:
+              $meta:
+                type: string
+              $primitive: null
+          description: ""
+          location:
+            column: 7
+            path: topology_template.node_templates["os_server"].capabilities["os"]
+            row: 27
+          maxRelationshipCount: -1
+          minRelationshipCount: 0
+          properties: {}
+          types:
+            glance.WebImage:
+              parent: tosca::OperatingSystem
+            tosca::OperatingSystem:
+              description: This is the default TOSCA type that should be used to express an Operating System capability for a node.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.12
+                tosca.canonical-name: tosca::OperatingSystem
+                tosca.normative: "true"
+              parent: tosca::Root
+            tosca::Root:
+              description: This is the default (root) TOSCA Capability Type definition that all other TOSCA Capability Types derive from.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.1
+                tosca.canonical-name: tosca::Root
+                tosca.normative: "true"
+        private_endpoint:
+          attributes:
+            ip_address:
+              $functionCall:
+                arguments:
+                  - $primitive: SELF
+                  - $primitive: private_address
+                column: 13
+                name: tosca.function.get_attribute
+                path: topology_template.node_templates["os_server"].capabilities["private_endpoint"].attributes["ip_address"]
+                row: 30
+                url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
+              $meta:
+                description: 'Note: This is the IP address as propagated up by the associated node''s host (Compute) container.'
+                type: string
+          description: ""
+          location:
+            column: 9
+            path: topology_template.node_templates["os_server"].capabilities["private_endpoint"]
+            row: 28
           maxRelationshipCount: -1
           minRelationshipCount: 0
           properties:
@@ -1239,8 +1540,6 @@ vertexes:
                 type: boolean
               $primitive: false
           types:
-            neutron.FloatingIp:
-              parent: tosca::Endpoint
             tosca::Endpoint:
               description: This is the default TOSCA type that should be used or extended to define a network endpoint capability. This includes the information to express a basic endpoint with a single port or a complex endpoint with multiple ports. By default the Endpoint is assumed to represent an address on a private network unless otherwise specified.
               metadata:
@@ -1256,25 +1555,27 @@ vertexes:
                 specification.location: 5.5.1
                 tosca.canonical-name: tosca::Root
                 tosca.normative: "true"
-        feature:
+        scalable:
           attributes: {}
           description: ""
           location:
-            column: 5
-            path: topology_template.node_templates["os_floating_ip"].capabilities["feature"]
-            row: 17
+            column: 7
+            path: topology_template.node_templates["os_server"].capabilities["scalable"]
+            row: 27
           maxRelationshipCount: -1
           minRelationshipCount: 0
-          properties: {}
+          properties:
+            max_instances:
+              $meta:
+                description: This property is used to indicate the maximum number of instances that should be created for the associated TOSCA Node Template by a TOSCA orchestrator.
+                type: integer
+              $primitive: 1
+            min_instances:
+              $meta:
+                description: This property is used to indicate the minimum number of instances that should be created for the associated TOSCA Node Template by a TOSCA orchestrator.
+                type: integer
+              $primitive: 1
           types:
-            tosca::Node:
-              description: The Node capability indicates the base capabilities of a TOSCA Node Type.
-              metadata:
-                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
-                specification.location: 5.5.2
-                tosca.canonical-name: tosca::Node
-                tosca.normative: "true"
-              parent: tosca::Root
             tosca::Root:
               description: This is the default (root) TOSCA Capability Type definition that all other TOSCA Capability Types derive from.
               metadata:
@@ -1282,6 +1583,14 @@ vertexes:
                 specification.location: 5.5.1
                 tosca.canonical-name: tosca::Root
                 tosca.normative: "true"
+            tosca::Scalable:
+              description: This is the default TOSCA type that should be used to express a scalability capability for a node.
+              metadata:
+                specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                specification.location: 5.5.13
+                tosca.canonical-name: tosca::Scalable
+                tosca.normative: "true"
+              parent: tosca::Root
       description: ""
       directives: []
       interfaces:
@@ -1293,49 +1602,92 @@ vertexes:
             configure:
               dependencies: []
               description: Standard lifecycle configure operation.
-              implementation: ""
-              inputs: {}
-              outputs: {}
-              timeout: -1
-            create:
-              dependencies: []
-              description: Standard lifecycle create operation.
               host: ORCHESTRATOR
-              implementation: artifacts/os_floating_ip_create.yaml
+              implementation: artifacts/os_server_create.yaml
               inputs:
-                floating_ip_pool:
+                server_flavor:
                   $functionCall:
                     arguments:
                       - $primitive: SELF
-                      - $primitive: endpoint
-                      - $primitive: network_name
-                    column: 17
-                    name: tosca.function.get_property
-                    path: topology_template.node_templates["os_floating_ip"].interfaces["Standard"].operations["create"].inputs["floating_ip_pool"]
-                    row: 24
-                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/neutron-floating-ip.yaml
-                server_id:
-                  $functionCall:
-                    arguments:
-                      - $primitive: SELF
-                      - $primitive: nova_server
-                      - $primitive: host
+                      - $primitive: flavor
+                      - $primitive: flavor
                       - $primitive: openstack_id
                     column: 17
                     name: tosca.function.get_attribute
-                    path: topology_template.node_templates["os_floating_ip"].interfaces["Standard"].operations["create"].inputs["server_id"]
-                    row: 25
-                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/neutron-floating-ip.yaml
+                    path: topology_template.node_templates["os_server"].interfaces["Standard"].operations["configure"].inputs["server_flavor"]
+                    row: 38
+                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
+                server_image:
+                  $functionCall:
+                    arguments:
+                      - $primitive: SELF
+                      - $primitive: image
+                      - $primitive: image
+                      - $primitive: openstack_id
+                    column: 17
+                    name: tosca.function.get_attribute
+                    path: topology_template.node_templates["os_server"].interfaces["Standard"].operations["configure"].inputs["server_image"]
+                    row: 37
+                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
+                server_keypair:
+                  $functionCall:
+                    arguments:
+                      - $primitive: SELF
+                      - $primitive: key_pair
+                      - $primitive: key_pair
+                      - $primitive: name
+                    column: 17
+                    name: tosca.function.get_property
+                    path: topology_template.node_templates["os_server"].interfaces["Standard"].operations["configure"].inputs["server_keypair"]
+                    row: 39
+                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
+                server_name:
+                  $functionCall:
+                    arguments:
+                      - $primitive: SELF
+                      - $primitive: host
+                      - $primitive: name
+                    column: 17
+                    name: tosca.function.get_attribute
+                    path: topology_template.node_templates["os_server"].interfaces["Standard"].operations["configure"].inputs["server_name"]
+                    row: 36
+                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
+                server_network:
+                  $functionCall:
+                    arguments:
+                      - $primitive: SELF
+                      - $primitive: private_endpoint
+                      - $primitive: network_name
+                    column: 17
+                    name: tosca.function.get_property
+                    path: topology_template.node_templates["os_server"].interfaces["Standard"].operations["configure"].inputs["server_network"]
+                    row: 40
+                    url: file:/home/shishqa/dev/ispras/tosca-mock/tosca/templates/openstack/nova-server.yaml
               outputs:
-                ip_address:
+                id:
                   $list:
                     - $primitive: SELF
-                    - $primitive: endpoint
-                    - $primitive: ip_address
+                    - $primitive: host
+                    - $primitive: openstack_id
                   $meta:
                     element:
                       type: string
                     type: list
+                private_address:
+                  $list:
+                    - $primitive: SELF
+                    - $primitive: private_address
+                  $meta:
+                    element:
+                      type: string
+                    type: list
+              timeout: -1
+            create:
+              dependencies: []
+              description: Standard lifecycle create operation.
+              implementation: ""
+              inputs: {}
+              outputs: {}
               timeout: -1
             delete:
               dependencies: []
@@ -1375,18 +1727,424 @@ vertexes:
                 tosca.normative: "true"
               parent: tosca::Root
       metadata: null
-      name: os_floating_ip
-      properties: {}
+      name: os_server
+      properties:
+        test:
+          $meta:
+            type: string
+          $primitive: test
       requirements:
         - capabilityName: ""
           capabilityPropertyValidators: {}
-          capabilityTypeName: nova.Server
+          capabilityTypeName: nova.KeyPair
           directives: null
           location:
             column: 5
-            path: topology_template.node_templates["os_floating_ip"].requirements{0}
-            row: 17
-          name: nova_server
+            path: topology_template.node_templates["os_server"].requirements{0}
+            row: 23
+          name: key_pair
+          nodeTemplateName: ""
+          nodeTemplatePropertyValidators: {}
+          nodeTypeName: ""
+          optional: false
+          relationship:
+            attributes:
+              state:
+                $meta:
+                  description: The state of the relationship instance.
+                  type: string
+                $primitive: initial
+              tosca_id:
+                $meta:
+                  description: A unique identifier of the realized instance of a Relationship Template that derives from any TOSCA normative type.
+                  type: string
+                $primitive: null
+              tosca_name:
+                $meta:
+                  description: This attribute reflects the name of the Relationship Template as defined in the TOSCA service template. This name is not unique to the realized instance model of corresponding deployed application as each template in the model can result in one or more instances (e.g., scaled) when orchestrated to a provider environment.
+                  type: string
+                $primitive: null
+            description: ""
+            interfaces:
+              Configure:
+                description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                inputs: {}
+                notifications: {}
+                operations:
+                  add_source:
+                    dependencies: []
+                    description: Operation to notify the target node of a source node which is now available via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  add_target:
+                    dependencies: []
+                    description: Operation to notify the source node of a target node being added via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_source:
+                    dependencies: []
+                    description: Operation to post-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_target:
+                    dependencies: []
+                    description: Operation to post-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_source:
+                    dependencies: []
+                    description: Operation to pre-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_target:
+                    dependencies: []
+                    description: Operation to pre-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_source:
+                    dependencies: []
+                    description: Operation to remove the source node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_target:
+                    dependencies: []
+                    description: Operation to remove a target node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  target_changed:
+                    dependencies: []
+                    description: Operation to notify source some property or attribute of the target changed
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                types:
+                  tosca::Configure:
+                    description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.5
+                      tosca.canonical-name: tosca::Configure
+                      tosca.normative: "true"
+                    parent: tosca::Root
+                  tosca::Root:
+                    description: This is the default (root) TOSCA Interface Type definition that all other TOSCA Interface Types derive from.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.3
+                      tosca.canonical-name: tosca::Root
+                      tosca.normative: "true"
+            metadata: {}
+            properties: {}
+            types:
+              tosca::DependsOn:
+                description: This type represents a general dependency relationship between two nodes.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.2
+                  tosca.canonical-name: tosca::DependsOn
+                  tosca.normative: "true"
+                parent: tosca::Root
+              tosca::Root:
+                description: This is the default (root) TOSCA Relationship Type definition that all other TOSCA Relationship Types derive from.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.1
+                  tosca.canonical-name: tosca::Root
+                  tosca.normative: "true"
+        - capabilityName: ""
+          capabilityPropertyValidators: {}
+          capabilityTypeName: neutron.SecurityGroup
+          directives: null
+          location:
+            column: 5
+            path: topology_template.node_templates["os_server"].requirements{1}
+            row: 23
+          name: security_group
+          nodeTemplateName: ""
+          nodeTemplatePropertyValidators: {}
+          nodeTypeName: ""
+          optional: false
+          relationship:
+            attributes:
+              state:
+                $meta:
+                  description: The state of the relationship instance.
+                  type: string
+                $primitive: initial
+              tosca_id:
+                $meta:
+                  description: A unique identifier of the realized instance of a Relationship Template that derives from any TOSCA normative type.
+                  type: string
+                $primitive: null
+              tosca_name:
+                $meta:
+                  description: This attribute reflects the name of the Relationship Template as defined in the TOSCA service template. This name is not unique to the realized instance model of corresponding deployed application as each template in the model can result in one or more instances (e.g., scaled) when orchestrated to a provider environment.
+                  type: string
+                $primitive: null
+            description: ""
+            interfaces:
+              Configure:
+                description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                inputs: {}
+                notifications: {}
+                operations:
+                  add_source:
+                    dependencies: []
+                    description: Operation to notify the target node of a source node which is now available via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  add_target:
+                    dependencies: []
+                    description: Operation to notify the source node of a target node being added via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_source:
+                    dependencies: []
+                    description: Operation to post-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_target:
+                    dependencies: []
+                    description: Operation to post-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_source:
+                    dependencies: []
+                    description: Operation to pre-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_target:
+                    dependencies: []
+                    description: Operation to pre-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_source:
+                    dependencies: []
+                    description: Operation to remove the source node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_target:
+                    dependencies: []
+                    description: Operation to remove a target node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  target_changed:
+                    dependencies: []
+                    description: Operation to notify source some property or attribute of the target changed
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                types:
+                  tosca::Configure:
+                    description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.5
+                      tosca.canonical-name: tosca::Configure
+                      tosca.normative: "true"
+                    parent: tosca::Root
+                  tosca::Root:
+                    description: This is the default (root) TOSCA Interface Type definition that all other TOSCA Interface Types derive from.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.3
+                      tosca.canonical-name: tosca::Root
+                      tosca.normative: "true"
+            metadata: {}
+            properties: {}
+            types:
+              tosca::DependsOn:
+                description: This type represents a general dependency relationship between two nodes.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.2
+                  tosca.canonical-name: tosca::DependsOn
+                  tosca.normative: "true"
+                parent: tosca::Root
+              tosca::Root:
+                description: This is the default (root) TOSCA Relationship Type definition that all other TOSCA Relationship Types derive from.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.1
+                  tosca.canonical-name: tosca::Root
+                  tosca.normative: "true"
+        - capabilityName: ""
+          capabilityPropertyValidators: {}
+          capabilityTypeName: glance.WebImage
+          directives: null
+          location:
+            column: 5
+            path: topology_template.node_templates["os_server"].requirements{2}
+            row: 23
+          name: image
+          nodeTemplateName: ""
+          nodeTemplatePropertyValidators: {}
+          nodeTypeName: ""
+          optional: false
+          relationship:
+            attributes:
+              state:
+                $meta:
+                  description: The state of the relationship instance.
+                  type: string
+                $primitive: initial
+              tosca_id:
+                $meta:
+                  description: A unique identifier of the realized instance of a Relationship Template that derives from any TOSCA normative type.
+                  type: string
+                $primitive: null
+              tosca_name:
+                $meta:
+                  description: This attribute reflects the name of the Relationship Template as defined in the TOSCA service template. This name is not unique to the realized instance model of corresponding deployed application as each template in the model can result in one or more instances (e.g., scaled) when orchestrated to a provider environment.
+                  type: string
+                $primitive: null
+            description: ""
+            interfaces:
+              Configure:
+                description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                inputs: {}
+                notifications: {}
+                operations:
+                  add_source:
+                    dependencies: []
+                    description: Operation to notify the target node of a source node which is now available via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  add_target:
+                    dependencies: []
+                    description: Operation to notify the source node of a target node being added via a relationship.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_source:
+                    dependencies: []
+                    description: Operation to post-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  post_configure_target:
+                    dependencies: []
+                    description: Operation to post-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_source:
+                    dependencies: []
+                    description: Operation to pre-configure the source endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  pre_configure_target:
+                    dependencies: []
+                    description: Operation to pre-configure the target endpoint.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_source:
+                    dependencies: []
+                    description: Operation to remove the source node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  remove_target:
+                    dependencies: []
+                    description: Operation to remove a target node.
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                  target_changed:
+                    dependencies: []
+                    description: Operation to notify source some property or attribute of the target changed
+                    implementation: ""
+                    inputs: {}
+                    outputs: {}
+                    timeout: -1
+                types:
+                  tosca::Configure:
+                    description: The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.5
+                      tosca.canonical-name: tosca::Configure
+                      tosca.normative: "true"
+                    parent: tosca::Root
+                  tosca::Root:
+                    description: This is the default (root) TOSCA Interface Type definition that all other TOSCA Interface Types derive from.
+                    metadata:
+                      specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                      specification.location: 5.8.3
+                      tosca.canonical-name: tosca::Root
+                      tosca.normative: "true"
+            metadata: {}
+            properties: {}
+            types:
+              tosca::DependsOn:
+                description: This type represents a general dependency relationship between two nodes.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.2
+                  tosca.canonical-name: tosca::DependsOn
+                  tosca.normative: "true"
+                parent: tosca::Root
+              tosca::Root:
+                description: This is the default (root) TOSCA Relationship Type definition that all other TOSCA Relationship Types derive from.
+                metadata:
+                  specification.citation: '[TOSCA-Simple-Profile-YAML-v1.3]'
+                  specification.location: 5.7.1
+                  tosca.canonical-name: tosca::Root
+                  tosca.normative: "true"
+        - capabilityName: ""
+          capabilityPropertyValidators: {}
+          capabilityTypeName: nova.Flavor
+          directives: null
+          location:
+            column: 5
+            path: topology_template.node_templates["os_server"].requirements{3}
+            row: 23
+          name: flavor
           nodeTemplateName: ""
           nodeTemplatePropertyValidators: {}
           nodeTypeName: ""
@@ -1513,7 +2271,7 @@ vertexes:
                   tosca.canonical-name: tosca::Root
                   tosca.normative: "true"
       types:
-        neutron.FloatingIp:
+        nova.Server:
           parent: tosca::Root
         tosca::Root:
           description: The TOSCA Root Node Type is the default type that all other TOSCA base Node Types derive from. This allows for all TOSCA nodes to have a consistent set of features for modeling and management (e.g., consistent definitions for requirements, capabilities and lifecycle interfaces).
@@ -1523,30 +2281,3 @@ vertexes:
             tosca.canonical-name: tosca::Root
             tosca.normative: "true"
     edgesOut: []
-  _2MonyRXtP9apQaV1FnlwRN1RxY2:
-    metadata:
-      puccini:
-        kind: Substitution
-        version: "1.0"
-    properties:
-      inputs: {}
-      properties: {}
-      type: neutron.FloatingIp
-      typeMetadata: {}
-    edgesOut:
-      - metadata:
-          puccini:
-            kind: CapabilityPointer
-            version: "1.0"
-        properties:
-          name: endpoint
-          target: endpoint
-        targetID: _2MonyQtVebKBmZv9colNcq10UFb
-      - metadata:
-          puccini:
-            kind: RequirementPointer
-            version: "1.0"
-        properties:
-          name: nova_server
-          target: nova_server
-        targetID: _2MonyQtVebKBmZv9colNcq10UFb
