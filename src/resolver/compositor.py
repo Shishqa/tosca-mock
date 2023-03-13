@@ -1,80 +1,113 @@
 import copy
+import collections
 
 # from . import instance_model
 # from . import instance
-from ..repository.client import client
+from ..client import repository
 
 #import instance_storage
 #import tosca_repository
 
+from . import coercer
+from . import mapper
+
 from .models import Config, InstanceConfig
 
 
-def get_config(template, is_substitution=False):
-  config = Config(template_id=template['id'])
+def get_config(template_id):
+  template = repository.get_template(template_id)
+  config = Config(template_id=template.metadata['template_id'])
 
-  for input_name, input_value in template['template']['inputs'].items():
+  for input_name, input_value in template.inputs.items():
     config.inputs[input_name] = input_value
 
-  for node_name, node in template['template']['nodes'].items():
-    if len(node['directives']) == 0:
+  for node_name, node in template.nodes.items():
+    if len(node.directives) == 0:
       continue
 
-    options = client.get_substitutions(node['type'])
-    config.substitutions[node_name] = [
-      get_config(client.get_template(op)) for op in options['substitutions']
-    ]
+    options = repository.get_substitutions(node.type)
+    config.substitutions[node_name] = options['substitutions']
   
   return config
 
-    # issues.append({
-    #   'type': 'substitute',
-    #   'node': node_name,
-    #   'options': [ { 
-    #     'author': op['author'], 
-    #     'name': op['name'], 
-    #     'issues': get_issues(client.get_template(op['author'], op['name'])['template']) 
-    #     } for op in options['substitutions'] 
-    #   ],
-    # })
-
-
 
 def create_cluster(cluster_config):
-  template_config = get_config(client.get_template(cluster_config.template_id))
+  template_config = get_config(cluster_config.template_id)
   
   template_id = cluster_config.template_id
-  topology = client.create_topology(template_id)
+  topology = repository.create_topology(template_id)
   
   for input_name in cluster_config.inputs.keys():
-    topology['topology']['inputs'][input_name] = cluster_config.inputs[input_name]
+    topology.inputs[input_name] = cluster_config.inputs[input_name]
 
   for node_name in template_config.substitutions.keys():
     sub_config = None
 
     if node_name in cluster_config.substitutions.keys():
       sub_config = cluster_config.substitutions[node_name]
-    else: 
+    else:
       auto_substitution = template_config.substitutions[node_name][0]
-      sub_config = InstanceConfig(template_id=auto_substitution.template_id)
+      sub_config = InstanceConfig(template_id=auto_substitution)
 
     sub_topology = create_cluster(sub_config)
-    sub_topology['topology']['metadata']['substitution'] = topology['id']
+    sub_topology.metadata['substitution_topology'] = topology.metadata['topology_id']
+    sub_topology.metadata['substitution_node'] = node_name
+    repository.update_topology(sub_topology)
 
-    client.update_topology(sub_topology['id'], sub_topology['topology'])
-
-    topology['topology']['nodes'][node_name]['metadata']['substitution'] = \
-      sub_topology['id']
+    topology.nodes[node_name].metadata['substitution'] = \
+      sub_topology.metadata['topology_id']
   
-  diff = client.update_topology(topology['id'], topology['topology'])
+  diff = repository.update_topology(topology)
   print(diff)
 
-  return client.get_topology(topology['id'])
+  return repository.get_topology(topology.metadata['topology_id'])
 
 
+def get_clusters():
+  topologies = repository.get_topologies()
 
-# def query_cluster(topology_id):
-#   topology = client.get_topology(topology_id)
+  dependencies = []
+  for topology_id in topologies:
+    topology = repository.get_topology(topology_id)
+    if 'substitution_topology' not in topology.metadata.keys():
+      continue
+    parent_topology = topology.metadata['substitution_topology']
+    dependencies.append([topology_id, parent_topology])
+
+  if len(dependencies) == 0:
+    return {}
+
+  trees = collections.defaultdict(dict)
+
+  for child, parent in dependencies:
+      trees[parent][child] = trees[child]
+
+  # Find roots
+  children, parents = zip(*dependencies)
+  roots = set(parents).difference(children)
+
+  return {root: trees[root] for root in roots}
+
+
+def delete_cluster(topology_id):
+  clusters = get_clusters()
+  if topology_id not in clusters.keys():
+    print('TODO')
+    return
+
+  delete_dependencies(clusters[topology_id])
+  repository.delete_topology(topology_id)
+
+
+def delete_dependencies(dependencies):
+  for dep in dependencies.keys():
+    delete_dependencies(dependencies[dep])
+    repository.delete_topology(dep)
+
+
+def query_cluster(topology_id):
+  topology = repository.get_topology(topology_id)
+  return mapper.map_topology(topology)
   
 
 

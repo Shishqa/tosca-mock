@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Union, List, Any
+from typing import Dict, List, Any
 from pydantic import BaseModel
 
 
 class Config(BaseModel):
     template_id: str
-    inputs: dict[str, Any] = {}
-    substitutions: dict[str, List[Config]] = {}
+    inputs: Dict[str, Any] = {}
+    substitutions: Dict[str, List[str]] = {}
 
 class InstanceConfig(BaseModel):
     template_id: str

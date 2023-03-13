@@ -34,7 +34,7 @@ topology_template:
                 private_address: [ SELF, private_address ]
                 id: [ SELF, host, openstack_id ]
               implementation:
-                primary: artifacts/os_server_create.yaml
+                primary: artifacts/openstack/ansible/os_server_create.yaml
                 operation_host: ORCHESTRATOR
 
   substitution_mappings:

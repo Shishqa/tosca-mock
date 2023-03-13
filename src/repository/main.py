@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from . import instance
 from . import definition
 
+from ..tosca.normalized import NormalizedServiceTemplate
+
 
 definition.init_database()
 instance.init_database()
@@ -43,18 +45,12 @@ async def get_templates():
 
 @app.post("/templates")
 async def add_template(template: bytes = File()):
-    template_id = definition.add_template(template)
-    return {
-        'id': template_id,
-        'template': definition.get_template(template_id)['normalized'].render()
-    }
+    template_id = definition.add_raw_template(template)
+    return definition.get_template(template_id)
 
 @app.get("/templates/{template_id:path}")
 async def get_template(template_id: str):
-    return {
-        'id': template_id,
-        'template': definition.get_template(template_id)['normalized'].render()
-    }
+    return definition.get_template(template_id)
 
 @app.delete("/templates/{template_id:path}")
 async def delete_template(author: str, template: str):
@@ -75,28 +71,18 @@ async def get_topologies():
 async def add_topology(topology_init: TopologyInit):
     normalized_template = definition.get_template(
         topology_init.template_id
-    )['normalized']
+    )
     topology_id = instance.add_topology(normalized_template)
-    return {
-        'id': topology_id,
-        'topology': instance.get_topology(topology_id).render()
-    }
+    return instance.get_topology(topology_id)
 
 @app.put("/topologies/{topology_id}")
-async def update_topology(topology_id: str, topology_json: Request):
-    diff = instance.update_topology(topology_id, await topology_json.json())
-    return {
-        'id': topology_id,
-        'diff': diff,
-    }
-
+async def update_topology(topology_id: str, topology_json: NormalizedServiceTemplate):
+    instance.update_topology(topology_id, topology_json)
+    return instance.get_topology(topology_id)
 
 @app.get("/topologies/{topology_id}")
 async def get_topology(topology_id: str):
-    return {
-        'id': topology_id,
-        'topology': instance.get_topology(topology_id).render()
-    }
+    return instance.get_topology(topology_id)
 
 
 @app.delete("/topologies/{topology_id}")

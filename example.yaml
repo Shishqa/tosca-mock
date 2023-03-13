@@ -1,7 +1,7 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
 metadata:
-  template_name: "server_example"
+  template_name: "server_example_abobs"
   template_author: "shishqa"
   template_version: "1.0"
 
@@ -15,7 +15,7 @@ topology_template:
   node_templates:
 
     hello-world:
-      type: tosca.nodes.WebApplication
+      type: nodes.WebApplication
       metadata:
         substitution: shishqa/string
       capabilities:

@@ -1,0 +1,36 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+
+  - debug:
+      msg: "ram: {{ (required_ram / 1048576) | int }}"
+  
+  - debug:
+      msg: "vcpus: {{ required_vcpus }}"
+
+  - debug:
+      msg: "disk: {{ (required_disk / 1073741824) | int }}"
+
+  - name: retrieve info about flavor
+    os_flavor_info:
+      ram: "{{ (required_ram / 1024 / 1024) | int }}"
+      vcpus: "{{ required_vcpus }}"
+    register: result
+
+  - name: print result
+    debug:
+      msg: "{{ result }}"
+
+  - name: filter by disk
+    set_fact:
+      matching_flavors: "{{ result.openstack_flavors | selectattr('disk', 'eq', (required_disk / 1073741824) | int) | list }}"
+
+  - fail:
+      msg: "no matching flavors"
+    when: matching_flavors | length == 0
+
+  - set_stats:
+      data:
+        id: "{{ matching_flavors[0]['id'] }}"
+  

@@ -2,12 +2,12 @@
 
 # Note that installing `puccini` will also install `ard` 
 
-from puccini_model import *
+from repository.puccini_model import *
 
 import sys, argparse, puccini.tosca, ard
 
 
-from model import *
+from tosca.normalized import *
 
 parser = argparse.ArgumentParser(description='Compile TOSCA')
 parser.add_argument('url', help='URL to TOSCA file or CSAR')
@@ -34,7 +34,7 @@ try:
     
     # ard.write(tosca.render(), sys.stdout, format='json')
     
-    instance = InstanceModel.parse_obj(tosca.render())
+    instance = NormalizedServiceTemplate.parse_obj(tosca.render())
     
     ard.write(instance.dict(), sys.stdout, format='json')
     

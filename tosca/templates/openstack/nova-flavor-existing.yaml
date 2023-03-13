@@ -47,7 +47,7 @@ topology_template:
               outputs:
                 id: [ SELF, flavor, openstack_id ]
               implementation:
-                primary: artifacts/os_flavor_find.yaml
+                primary: artifacts/openstack/ansible/os_flavor_find.yaml
                 operation_host: ORCHESTRATOR
 
   substitution_mappings:

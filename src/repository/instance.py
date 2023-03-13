@@ -6,7 +6,7 @@ import uuid
 import os
 import pickle
 
-from . import instance_model
+# from . import instance_model
 
 topologies = {}
 nodes = {}
@@ -36,18 +36,15 @@ def add_topology(normalized_template):
   
   topology = copy.deepcopy(normalized_template)
   for node_name, node in topology.nodes.items():
-    node.attributes['tosca_name'].set(instance_model.Primitive(node, {'type': 'string'}, node_name))
-    node.attributes['tosca_id'].set(instance_model.Primitive(node, {'type': 'string'}, uuid.uuid4().hex))
+    node.attributes['tosca_name'] = node_name
+    node.attributes['tosca_id'] = uuid.uuid4().hex
 
   topology_id = uuid.uuid4().hex
   while topology_id in topologies.keys():
     topology_id = uuid.uuid4().hex
+
+  topology.metadata['topology_id'] = topology_id
   topologies[topology_id] = topology
-  
-  # for node_name, node in topology.nodes.items():
-  #   if node.type not in nodes.keys():
-  #     nodes[node.type] = {}
-  #   nodes[node.type][topology.name + '$' + node_name] = node
 
   dump_database()
   return topology_id
@@ -56,15 +53,16 @@ def add_topology(normalized_template):
 
 def update_topology(topology_id, updated_topology):
   topology = get_topology(topology_id)
+  topologies[topology_id] = updated_topology
   
-  diff = jsondiff.diff(topology.render(), updated_topology, marshal=True)
-  print(diff)
+  diff = jsondiff.diff(topology.dict(), updated_topology.dict(), marshal=True)
+  # print(diff)
   
-  topology.update(diff)
-  topologies[topology_id] = topology
+  # topology.update(diff)
+  # topologies[topology_id] = topology
   
   dump_database()
-  return diff
+  return updated_topology
   
 
 def get_topologies():
@@ -85,7 +83,7 @@ def get_topology(topology_id):
 def delete_topology(topology_id):
   global topologies
   
-  topology = get_topology(topology_id)
-  topologies.pop(topology_id)
+  # topology = get_topology(topology_id)
+  topologies.pop(topology_id, None)
   
   dump_database()

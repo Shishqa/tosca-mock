@@ -1,4 +1,3 @@
 {
-  "template_author": "shishqa",
-  "template_name": "openstack-compute-with-public-ip-ansible"
+  "template_id": "shishqa/server_example"
 }

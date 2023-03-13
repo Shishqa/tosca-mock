@@ -17,44 +17,44 @@ topology_template:
     key_name:
       type: string
       description: Name of key-pair to be used for compute instance
-      default: null
+      default: ""
 
     floating_ip_pool:
       type: string
       description: Name of public network to get floating ip from
-      default: null
+      default: ""
 
     network:
       type: string
-      default: null
+      default: ""
 
     instance_name:
       type: string
-      default: null
+      default: ""
 
     disk_size:
       type: scalar-unit.size
-      default: 10 GiB
+      default: 0 B
 
     mem_size:
       type: scalar-unit.size
-      default: 1 GiB
+      default: 0 B
 
     num_cpus:
       type: integer
-      default: 1
+      default: 0
 
     os_architecture:
       type: string
-      default: LTS-Focal-Fossa
+      default: ""
 
     os_distribution:
       type: string
-      default: Ubuntu-Server
+      default: ""
 
     os_version:
       type: version
-      default: "20.04"
+      default: 0.0.0
 
   node_templates:
 

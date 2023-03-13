@@ -5,7 +5,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 
 from . import compositor
 from .models import Config, InstanceConfig
-from ..repository.client import client
+from ..client import repository
 
 
 app = FastAPI()
@@ -15,11 +15,19 @@ app = FastAPI()
 
 @app.get("/configs/{template_id:path}")
 async def get_template_configs(template_id: str) -> Config:
-    return compositor.get_config(client.get_template(template_id))
+    return compositor.get_config(template_id)
+
+@app.get("/clusters")
+async def get_clusters():
+    return compositor.get_clusters()
 
 @app.post("/clusters")
 async def create_cluster(config: InstanceConfig):
     return compositor.create_cluster(config)
+
+@app.delete("/clusters/{cluster_id}")
+async def delete_cluster(cluster_id: str):
+    compositor.delete_cluster(cluster_id)
 
 @app.get("/clusters/{cluster_id}")
 async def query_cluster(cluster_id: str):

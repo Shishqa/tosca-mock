@@ -291,7 +291,7 @@ class Concat(ValueInstance):
         self.args.append(create_function(node, {}, arg['$functionCall']))
 
   def render(self):
-    return [a.render() for a in self.args]
+    return { 'concat': [a.render() for a in self.args] }
 
   def get(self):
     strings = [a.get() for a in self.args]
@@ -475,7 +475,11 @@ class OperationInstance:
       render_outputs[output_name] = output_body.render()
     
     return {
-      'implementation': self.implementation,
+      'implementation': {
+        'primary': self.implementation,
+        'dependencies': self.definition['dependencies'],
+        'operation_host': self.definition['host'],
+      } if self.implementation is not None else None,
       'inputs': render_inputs,
       'outputs': render_outputs
     }
@@ -524,6 +528,8 @@ class RelationshipInstance:
     self.source = source
     self.target = target
     self.definition = copy.deepcopy(definition)
+
+    self.directives = []
 
     self.types = copy.deepcopy(self.definition['types'])
     self.find_type()
@@ -593,10 +599,7 @@ class NodeInstance:
     self.find_type()
 
     self.directives = copy.deepcopy(self.definition['directives'])
-    self.metadata = {
-      'substitution': None,
-      'selection': None,
-    }
+    self.metadata = {}
 
     self.attributes = {}
 
@@ -657,6 +660,7 @@ class NodeInstance:
             'node': req.target.name if req.target is not None else None,
             'capability': None,
             'relationship': req.render(),
+            'directives': req.directives,
           }
         } for req in self.requirements
       ],
@@ -737,9 +741,12 @@ class TopologyTemplateInstance:
       'attributes': {},
       'requirements': {},
     }
+    has_substitution = False
     for vertex_id, vertex in self.definition['vertexes'].items():
       if vertex['metadata']['puccini']['kind'] != 'Substitution':
         continue
+
+      has_substitution = True
       
       self.substitution_mappings['node_type'] = vertex['properties']['type']
       for prop_name, input_name in vertex['properties']['inputs'].items():
@@ -753,7 +760,7 @@ class TopologyTemplateInstance:
             self.definition['vertexes'][edge['targetID']]['properties']['name'],
             target
           ]
-        if edge['metadata']['puccini']['kind'] == 'RequiementPointer':
+        if edge['metadata']['puccini']['kind'] == 'RequirementPointer':
           name = edge['properties']['name']
           target = edge['properties']['target']
           self.substitution_mappings['requirements'][name] = [
@@ -767,6 +774,9 @@ class TopologyTemplateInstance:
             self.definition['vertexes'][edge['targetID']]['properties']['name'],
             target
           ]
+
+    if not has_substitution:
+      self.substitution_mappings = None
 
     self.nodes = {}
     for vertex_id, vertex in self.definition['vertexes'].items():
@@ -790,10 +800,7 @@ class TopologyTemplateInstance:
   def render(self):
     render_inputs = {}
     for input_name, input_body in self.inputs.items():
-      render_inputs[input_name] = {
-        'type': input_body.value.meta['type'],
-        'default': input_body.get()
-      }
+      render_inputs[input_name] = input_body.get()
     return {
       'inputs': render_inputs,
       'metadata': self.metadata,

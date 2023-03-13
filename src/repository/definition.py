@@ -8,7 +8,15 @@ import copy
 import uuid
 import io
 
-from . import instance_model
+from . import puccini_model
+
+import ard
+import puccini.tosca
+import tempfile
+
+
+
+from ..tosca.normalized import NormalizedServiceTemplate
 
 
 templates = {}
@@ -25,66 +33,45 @@ def init_database():
   if not os.path.exists('tosca/templates'):
     os.makedirs('tosca/templates')
 
-  for root, dirs, files in os.walk("tosca"):
+  for root, dirs, files in os.walk("tosca/templates"):
     if 'artifacts' in root:
       continue
     
     for file in files:
       path = os.path.join(root, file)
-      normalized_template = parse_local(path)
-      with io.open(path, 'r') as f:
-        raw_template = yaml.safe_load(f.read())
-      add_normalized_template(normalized_template, raw_template)
+      print(path)
+
+      normalized_template = parse(path)
+      add_template(normalized_template)
 
 
-def parse_local(path):
-  PUCCINI_CMD = 'puccini-tosca parse'
-  pipe = sp.Popen(
-      f'{PUCCINI_CMD} {path}',
-      shell=True,
-      stdout=sp.PIPE,
-      stderr=sp.PIPE
+def parse(path):
+  try:
+    clout = puccini.tosca.compile(
+      path, 
+      resolve=False,
+      coerce=False,
     )
-  res = pipe.communicate()
-
-  if pipe.returncode != 0:
-    raise RuntimeError(res[1].decode())
-
-  return yaml.safe_load(res[0])
-
-
-def parse(f, phases=5):
-  PUCCINI_CMD = 'puccini-tosca parse'
-  pipe = sp.Popen(
-      f'{PUCCINI_CMD} -s {phases} -m=yaml',
-      shell=True,
-      stdin=sp.PIPE,
-      stdout=sp.PIPE,
-      stderr=sp.PIPE
-    )
-  res = pipe.communicate(f.read())
-
-  if pipe.returncode != 0:
-    report = yaml.safe_load(res[1])
-    for problem in report['problems']:
+    clout_object = puccini_model.TopologyTemplateInstance('', clout)
+    return NormalizedServiceTemplate.parse_obj(clout_object.render())
+  except puccini.tosca.Problems as e:
+    for problem in e.problems:
       problem.pop('callers')
       problem.pop('section')
     raise HTTPException(
       status_code=400,
       detail={
         'error': "Could not parse the template",
-        'problems': report['problems']
+        'problems': [ dict(p) for p in e.problems ]
       }
     )
 
-  return yaml.safe_load(res[0])
 
-
-def add_normalized_template(normalized_template, raw_template):
+def add_template(template):
   global templates
   global substitutions
-  
-  metadata_keys = normalized_template['metadata'].keys()
+
+  metadata_keys = template.metadata.keys()
   if 'template_name' not in metadata_keys:
     raise HTTPException(
       status_code=400,
@@ -107,10 +94,10 @@ def add_normalized_template(normalized_template, raw_template):
       }
     )
     
-  template_author = normalized_template['metadata']['template_author']  
-  template_name = normalized_template['metadata']['template_name']
+  template_author = template.metadata['template_author']  
+  template_name = template.metadata['template_name']
   # TODO: handle version
-  template_version = normalized_template['metadata']['template_version']
+  _template_version = template.metadata['template_version']
 
   template_id = f"{template_author}/{template_name}"
 
@@ -121,29 +108,30 @@ def add_normalized_template(normalized_template, raw_template):
         'error': f'Template {template_id} already exists'
       }
     )
-
-  topology = instance_model.TopologyTemplateInstance(
-    template_id,
-    normalized_template
-  )
   
-  templates[template_id] = {
-    'normalized': topology,
-    'raw': raw_template
-  }
+  template.metadata['template_id'] = template_id
+  templates[template_id] = template
 
-  substitution = normalized_template['substitution']
+  substitution = template.substitution_mappings
   if substitution is not None:
-    substitution_type = substitution['type']
+    substitution_type = substitution.node_type
     if substitution_type not in substitutions:
       substitutions[substitution_type] = set()
     substitutions[substitution_type].add(template_id)
+
   return template_id
 
 
-def add_template(template: bytes):
-  normalized_template = parse(io.BytesIO(template))
-  add_normalized_template(normalized_template, yaml.safe_load(template))
+def dump_raw_template(raw_template: bytes):
+  with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml') as f:
+    f.write(raw_template.decode('utf-8'))
+    return f.name
+
+
+def add_raw_template(raw_template: bytes):
+  template_file = dump_raw_template(raw_template)
+  normalized_template = parse(template_file)
+  return add_template(normalized_template)
 
 
 def delete_template(template_id):
@@ -151,9 +139,9 @@ def delete_template(template_id):
   global substitutions
   
   template = get_template(template_id)
-  substitution = template['normalized']['substitution_mappings']
+  substitution = template.substitution_mappings
   if substitution is not None:
-    substitution_type = substitution['type']
+    substitution_type = substitution.node_type
     substitutions[substitution_type].pop(template_id)
 
   templates.pop(template_id)
@@ -171,6 +159,9 @@ def get_template(template_id):
         'error': f'Template {template_id} not found'
       }
     )
+
+  print(templates[template_id].schema())
+
   return templates[template_id]
 
 def get_substitutions_for_type(node_type):

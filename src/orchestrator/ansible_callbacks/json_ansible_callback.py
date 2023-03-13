@@ -38,6 +38,9 @@ class CallbackModule(CallbackBase):
         task_result = {"name": self.tasks[result._task._uuid], "result": result._result}
         self._display.display(json.dumps(task_result, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
+    def v2_runner_on_failed(self, result, ignore_errors=False):
+        self.dump_result(result)
+
     def v2_playbook_on_task_start(self, task, is_conditional):
         # pylint: disable=protected-access
         self.tasks[task._uuid] = task.name

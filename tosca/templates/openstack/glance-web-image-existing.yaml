@@ -27,7 +27,7 @@ topology_template:
               outputs:
                 id: [ SELF, image, openstack_id ]
               implementation:
-                primary: artifacts/os_image_find.yaml
+                primary: artifacts/openstack/ansible/os_image_find.yaml
                 operation_host: ORCHESTRATOR
 
   substitution_mappings:

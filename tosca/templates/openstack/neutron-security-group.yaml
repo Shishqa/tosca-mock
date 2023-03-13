@@ -22,7 +22,9 @@ topology_template:
             create:
               inputs:
                 name: { get_property: [ SELF, security_group, name ] }
-              implementation: artifacts/os_security_group_create.yaml
+              implementation:
+                primary: artifacts/openstack/ansible/os_security_group_create.yaml
+                operation_host: ORCHESTRATOR
 
   substitution_mappings:
     node_type: openstack:neutron.SecurityGroup
