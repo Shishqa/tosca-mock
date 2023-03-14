@@ -20,6 +20,9 @@ topology_template:
         private_endpoint:
           attributes:
             ip_address: { get_attribute: [ SELF, private_address ] }
+        host:
+          properties:
+            name: test
       interfaces:
         Standard:
           operations:

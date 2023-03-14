@@ -16,6 +16,10 @@ topology_template:
 
     os_security_group:
       type: openstack:neutron.SecurityGroup
+      capabilities:
+        security_group:
+          properties:
+            name: test
       interfaces:
         Standard:
           operations:

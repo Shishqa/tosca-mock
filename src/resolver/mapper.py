@@ -7,126 +7,161 @@ from ..client import repository
 from . import coercer
 
 
-def map_topology(topology, mapped={}, mapping=set()):
-  mapping.add(topology.metadata['topology_id'])
+# Bottom to top mappings (upper)
 
-  topology = map_lower(topology, mapped, mapping)
-  topology = map_upper(topology, mapped, mapping)
+def map_node_attribute(topology, node_name, attr_name):
+  upper_node = topology.nodes[node_name]
+  if 'substitution' not in upper_node.metadata.keys():
+    return coercer.coerce(topology, ('NODE', node_name), upper_node.attributes[attr_name])
 
-  external = None
-  if 'substitution_topology' in topology.metadata.keys():
-    external = mapped.get(topology.metadata['substitution_topology'], None)
-  
-  topology = coercer.coerce_topology(topology, external)
-
-  mapped[topology.metadata['topology_id']] = topology
-
-  return topology
-
-
-def map_upper(upper_topology, mapped, mapping):
-  print(f'MAP UPPER: {upper_topology.metadata["topology_id"]}')
-  for node_name in upper_topology.nodes.keys():
-    node = upper_topology.nodes[node_name]
-    if 'substitution' in node.metadata.keys():
-      upper_topology.nodes[node_name] = map_node_upper(upper_topology, node_name, mapped, mapping)
-  return upper_topology
-
-
-def map_node_upper(upper_topology, node_name, mapped, mapping):
-  print(node_name)
-  upper_node = upper_topology.nodes[node_name]
-  
   lower_topology_id = upper_node.metadata['substitution']
-  if lower_topology_id in mapping:
-    return upper_node
-  if lower_topology_id in mapped.keys():
-    lower_topology = mapped[lower_topology_id]
-  else:
-    lower_topology = repository.get_topology(lower_topology_id)
-    lower_topology = map_topology(lower_topology, mapped, mapping)
+  lower_topology = repository.get_topology(lower_topology_id)
 
-  for upper_attr_name, mapping in lower_topology.substitution_mappings.attributes.items():
-    lower_node_name = mapping[0]
-    lower_attr_name = mapping[1]
-    upper_node.attributes[upper_attr_name] = lower_topology\
-      .nodes[lower_node_name]\
-      .attributes[lower_attr_name]
+  if attr_name not in lower_topology.substitution_mappings.attributes.keys():
+    return coercer.coerce(topology, ('NODE', node_name), upper_node.attributes[attr_name])
 
-  for upper_cap_name, mapping in lower_topology.substitution_mappings.capabilities.items():
-    upper_capability = upper_node.capabilities[upper_cap_name]
+  mapping = lower_topology.substitution_mappings.attributes[attr_name]
+  
+  lower_node_name = mapping[0]
+  lower_node = lower_topology.nodes[lower_node_name]
 
-    lower_node_name = mapping[0]
-    lower_capability_name = mapping[1]
-    lower_capability = lower_topology\
-      .nodes[lower_node_name]\
-      .capabilities[lower_capability_name]
+  lower_attr_name = mapping[1]
+  lower_attr = lower_node.attributes[lower_attr_name]
 
-    for lower_attr_name, lower_attr_value in lower_capability.attributes.items():
-      upper_capability.attributes[lower_attr_name] = lower_attr_value
-
-  return upper_node
+  return map_node_attribute(lower_topology, lower_node_name, lower_attr_name)
 
 
-def map_lower(lower_topology, mapped, mapping):
-  if 'substitution_topology' not in lower_topology.metadata.keys():
-    return lower_topology
+def map_capability_attribute(topology, node_name, capability_name, attr_name):
+  upper_node = topology.nodes[node_name]
+  upper_capability = upper_node.capabilities[capability_name]
 
-  upper_topology_id = lower_topology.metadata['substitution_topology']
-  if upper_topology_id in mapping:
-    return lower_topology
-  if upper_topology_id in mapped.keys():
-    upper_topology = mapped[upper_topology_id]
-  else:
-    upper_topology = repository.get_topology(upper_topology_id)
-    upper_topology = map_topology(upper_topology, mapped, mapping)
+  if 'substitution' not in upper_node.metadata.keys():
+    return coercer.coerce(topology, ('NODE', node_name), upper_capability.attributes[attr_name])
 
-  upper_node_name = lower_topology.metadata['substitution_node']
+  lower_topology_id = upper_node.metadata['substitution']
+  lower_topology = repository.get_topology(lower_topology_id)
+
+  if capability_name not in lower_topology.substitution_mappings.capabilities.keys():
+    return coercer.coerce(topology, ('NODE', node_name), upper_capability.attributes[attr_name])
+
+  mapping = lower_topology.substitution_mappings.capabilities[capability_name]
+  
+  lower_node_name = mapping[0]
+  lower_capability_name = mapping[1]
+
+  return map_capability_attribute(lower_topology, lower_node_name, lower_capability_name, attr_name)
+
+
+# Top to bottom mappings (lower)
+
+def map_topology_input(topology, input_name):
+  if 'substitution_topology' not in topology.metadata.keys():
+    return topology.inputs[input_name]
+
+  upper_topology_id = topology.metadata['substitution_topology']
+  upper_topology = repository.get_topology(upper_topology_id)
+
+  upper_node_name = topology.metadata['substitution_node']
   upper_node = upper_topology.nodes[upper_node_name]
 
-  print(f'MAP LOWER: {upper_node_name} {lower_topology.substitution_mappings}')
+  print(f'MAP LOWER: {upper_node_name} {topology.substitution_mappings}')
 
-  for upper_prop_name, mapping in lower_topology.substitution_mappings.properties.items():
-    lower_input_name = mapping[0]
-    lower_topology.inputs[lower_input_name] = upper_node.properties[upper_prop_name]
+  mapped_inputs = { 
+    mapping[0]: upper_prop_name
+    for upper_prop_name, mapping 
+    in topology.substitution_mappings.properties.items()
+  }
+  if input_name not in mapped_inputs:
+    return topology.inputs[input_name]
 
-  for upper_cap_name, mapping in lower_topology.substitution_mappings.capabilities.items():
-    upper_capability = upper_node.capabilities[upper_cap_name]
+  upper_prop_name = mapped_inputs[input_name]
+  return coercer.coerce(
+    upper_topology,
+    ('NODE', upper_node_name),
+    upper_node.properties[upper_prop_name]
+  )
 
-    lower_node_name = mapping[0]
-    lower_capability_name = mapping[1]
-    lower_capability = lower_topology\
-      .nodes[lower_node_name]\
-      .capabilities[lower_capability_name]
+def map_capability_property(topology, node_name, capability_name, prop_name):
+  lower_node = topology.nodes[node_name]
+  lower_capability = lower_node.capabilities[capability_name]
 
-    for upper_prop_name, upper_prop_value in upper_capability.properties.items():
-      lower_capability.properties[upper_prop_name] = upper_prop_value
+  if 'substitution_topology' not in topology.metadata.keys():
+    return coercer.coerce(topology, ('NODE', node_name), lower_capability.properties[prop_name])
 
-  for upper_req_name, mapping in lower_topology.substitution_mappings.requirements.items():
-    lower_node_name = mapping[0]
-    lower_req_name = mapping[1]
+  upper_topology_id = topology.metadata['substitution_topology']
+  upper_topology = repository.get_topology(upper_topology_id)
 
-    lower_node = lower_topology.nodes[lower_node_name]
+  upper_node_name = topology.metadata['substitution_node']
+  upper_node = upper_topology.nodes[upper_node_name]
 
-    for i, req in enumerate(lower_node.requirements):
+  print(f'MAP LOWER: {upper_node_name} {topology.substitution_mappings}')
+
+  reverse_mapping = {
+    (mapping[0], mapping[1]): upper_capability_name
+    for upper_capability_name, mapping 
+    in topology.substitution_mappings.capabilities.items()
+  }
+
+  if (node_name, capability_name) not in reverse_mapping:
+    return coercer.coerce(topology, ('NODE', node_name), lower_capability.properties[prop_name])
+
+  upper_capability_name = reverse_mapping[(node_name, capability_name)]
+
+  return map_capability_property(
+    upper_topology,
+    upper_node_name,
+    upper_capability_name,
+    prop_name
+  )
+
+
+def map_node_requirement(topology, node_name, requirement_name, rest):
+  lower_node = topology.nodes[node_name]
+
+  if 'substitution_topology' not in topology.metadata.keys():
+    for req in lower_node.requirements:
       req_name = list(req.keys())[0]
-      if req_name != lower_req_name:
-        continue
-      if req[req_name].node is None:
-        lower_node.requirements.pop(i)
+      if req_name == requirement_name:
+        return coercer.node_get_attribute(
+          topology,
+          req[req_name].node,
+          rest
+        )
 
-    for req in upper_node.requirements:
+  upper_topology_id = topology.metadata['substitution_topology']
+  upper_topology = repository.get_topology(upper_topology_id)
+
+  upper_node_name = topology.metadata['substitution_node']
+  upper_node = upper_topology.nodes[upper_node_name]
+
+  print(f'MAP LOWER: {upper_node_name} {topology.substitution_mappings}')
+
+  reverse_mapping = {
+    (mapping[0], mapping[1]): upper_requirement_name
+    for upper_requirement_name, mapping 
+    in topology.substitution_mappings.requirements.items()
+  }
+
+  if (node_name, requirement_name) not in reverse_mapping:
+    for req in lower_node.requirements:
       req_name = list(req.keys())[0]
-      if req_name != upper_req_name:
-        continue
+      if req_name == requirement_name:
+        return coercer.node_get_attribute(
+          topology,
+          req[req_name].node,
+          rest
+        )
 
-      req_body = copy.deepcopy(req[req_name])
-      req_body.directives = ['external']
+  upper_requirement_name = reverse_mapping[(node_name, requirement_name)]
+  for req in upper_node.requirements:
+    req_name = list(req.keys())[0]
+    if req_name != upper_requirement_name:
+      continue
 
-      lower_node.requirements.append({ 
-        lower_req_name: req_body
-      })
-      print('EXTERNAL')
-  
-  return lower_topology
+    return coercer.node_get_attribute(
+      upper_topology,
+      req[req_name].node,
+      rest
+    )
 
+  raise RuntimeError()

@@ -57,10 +57,7 @@ def create_cluster(cluster_config):
     topology.nodes[node_name].metadata['substitution'] = \
       sub_topology.metadata['topology_id']
   
-  diff = repository.update_topology(topology)
-  print(diff)
-
-  return repository.get_topology(topology.metadata['topology_id'])
+  return repository.update_topology(topology)
 
 
 def get_clusters():
@@ -82,7 +79,6 @@ def get_clusters():
   for child, parent in dependencies:
       trees[parent][child] = trees[child]
 
-  # Find roots
   children, parents = zip(*dependencies)
   roots = set(parents).difference(children)
 
@@ -107,8 +103,7 @@ def delete_dependencies(dependencies):
 
 def query_cluster(topology_id):
   topology = repository.get_topology(topology_id)
-  return mapper.map_topology(topology)
-  
+  return coercer.coerce_topology(topology)
 
 
 def get_issues(topology):

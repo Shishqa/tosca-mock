@@ -16,6 +16,10 @@ topology_template:
 
     os_floating_ip:
       type: openstack:neutron.FloatingIp
+      capabilities:
+        endpoint:
+          properties:
+            network_name: test
       interfaces:
         Standard:
           operations:

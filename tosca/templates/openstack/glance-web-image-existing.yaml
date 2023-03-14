@@ -16,6 +16,12 @@ topology_template:
 
     os_image:
       type: openstack:glance.WebImage
+      capabilities:
+        image:
+          properties:
+            distribution: test
+            architecture: test
+            version: "0.0.0"
       interfaces:
         Standard:
           operations:
