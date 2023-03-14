@@ -1,0 +1,71 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_name: "server_example"
+  template_author: "shishqa"
+  template_version: "1.0"
+
+imports:
+  - namespace_prefix: nginx
+    file: ../profiles/nginx/main.yaml
+
+topology_template:
+
+  node_templates:
+
+    hello-world-app:
+      type: tosca.nodes.WebApplication
+      capabilities:
+        app_endpoint:
+          attributes:
+            ip_address: { get_attribute: [ nginx, data_endpoint, ip_address ] }
+      requirements:
+        - host: nginx
+      interfaces:
+        Standard:
+          operations:
+            start:
+              implementation:
+                primary: artifacts/hello-world/ansible/start.yaml
+                dependencies:
+                  - artifacts/index.html
+                operation_host: HOST
+      artifacts:
+        artifacts/index.html:
+          file: artifacts/index.html
+          deploy_path: index.html
+          type: tosca.artifacts.File   
+
+    nginx:
+      type: nginx:Nginx
+      directives: [ substitute ]
+      capabilities:
+        data_endpoint:
+          attributes:
+            ip_address: { get_attribute: [ SELF, host, public_address ] }
+      requirements:
+        - host: test-from-orchestrator
+
+    test-from-orchestrator:
+      type: tosca.nodes.Compute
+      directives: [ substitute ]
+      capabilities:
+        host:
+          properties:
+            name: { get_attribute: [ SELF, tosca_name ] }
+            num_cpus: 1
+            disk_size: 10 GiB
+            mem_size: 1 GiB
+        endpoint:
+          properties:
+            network_name: net-for-intra-sandbox
+        os:
+          properties:
+            architecture: LTS-Focal-Fossa
+            distribution: Ubuntu-Server
+            version: "20.04"
+        scalable:
+          properties:
+            min_instances: 1
+            max_instances: 5
+            default_instances: 1

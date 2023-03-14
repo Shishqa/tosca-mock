@@ -1,0 +1,9 @@
+--- 
+- name: set up webserver
+  hosts: all
+  tasks:
+    - name: start nginx
+      service: 
+        name: nginx
+        state: started
+        enabled: yes  # if you want to also enable nginx

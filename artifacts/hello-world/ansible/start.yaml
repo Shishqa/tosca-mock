@@ -1,0 +1,48 @@
+---
+- name: deploy site
+  hosts: all
+  become: true
+  tasks:
+    - name: copy site
+      ansible.builtin.copy:
+        src: index.html
+        dest: /home/ubuntu/index.html
+        mode: '0644'
+
+    - name: Create nginx conf
+      ansible.builtin.copy:
+        content: |
+          daemon            off;
+          worker_processes  2;
+          user              www-data;
+
+          events {
+              use           epoll;
+              worker_connections  128;
+          }
+
+          error_log         logs/error.log info;
+
+          http {
+              server_tokens off;
+              include       mime.types;
+              charset       utf-8;
+
+              access_log    logs/access.log  combined;
+
+              server {
+                  server_name   localhost;
+                  listen        127.0.0.1:80;
+                  root /home/ubuntu;
+                  index index.html
+              }
+          }
+        dest: /etc/nginx/nginx.conf
+
+    - name: test config
+      shell: nginx -t
+
+    - name: restart nginx
+      service: 
+        name: nginx
+        state: restarted

@@ -40,11 +40,7 @@ def coerce_topology(topology):
       )
     for prop_name, prop in node.properties.items():
       print(prop_name)
-      node.properties[prop_name] = mapper.map_node_property(
-        topology,
-        node_name,
-        prop_name
-      )
+      node.properties[prop_name] = coerce(topology, ('NODE', node_name), node.properties[prop_name])
     for interface_name in node.interfaces.keys():
       interface = node.interfaces[interface_name]
       for inp_name, inp in interface.inputs.items():
@@ -128,11 +124,7 @@ def node_get_attribute(topology, node_name, path):
     )
 
   if step in node.properties.keys():
-    return mapper.map_node_property(
-      topology,
-      node_name,
-      step
-    )
+    return coerce(topology, ('NODE', node_name), node.properties[step])
 
   if step in node.capabilities.keys():
     return capability_get_attribute(

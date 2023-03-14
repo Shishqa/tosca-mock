@@ -23,7 +23,14 @@ topology_template:
       interfaces:
         Standard:
           operations:
-            start: {}
+            create:
+              implementation:
+                primary: artifacts/nginx/ansible/create.yaml
+                operation_host: HOST
+            start:
+              implementation:
+                primary: artifacts/nginx/ansible/start.yaml
+                operation_host: HOST
 
   substitution_mappings:
     node_type: nginx:Nginx
