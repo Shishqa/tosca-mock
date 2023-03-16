@@ -5,12 +5,8 @@ import subprocess  # nosec
 import tempfile
 import json
 import sys
-import tempfile
-
 import yaml
 
-# from opera.threading import utils as thread_utils
-# from . import utils
 from .ansible_callbacks import json_ansible_callback
 
 

@@ -1,20 +1,11 @@
 from fastapi import HTTPException
 
 import os
-import argparse
-import subprocess as sp
-import yaml
-import copy
-import uuid
-import io
 
 from . import puccini_model
 
-import ard
 import puccini.tosca
 import tempfile
-
-
 
 from ..tosca.normalized import NormalizedServiceTemplate
 

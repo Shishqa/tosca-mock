@@ -56,7 +56,7 @@ def update_topology(topology_id, updated_topology):
   topologies[topology_id] = updated_topology
   
   diff = jsondiff.diff(topology.dict(), updated_topology.dict(), marshal=True)
-  # print(diff)
+  print(diff)
   
   # topology.update(diff)
   # topologies[topology_id] = topology

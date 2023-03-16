@@ -1,20 +1,13 @@
-
+from typing import List
 import graphlib
 import os
 import yaml
 
 from ..client import repository, resolver
-
-from ..resolver import mapper
-
 from . import runner
 
-from typing import Dict, List, Tuple, Optional, Union
-
-# def get_node_state(node_name):
-#   topology = instance_storage.get_topology(node_name[0])
-#   node = topology.nodes[node_name[1]]
-#   return node.attributes['state'].get()
+# TODO(@shishqa): remove this dependency
+from ..resolver import mapper
 
 
 def update_node_state(topology_id, node_name, new_state):
@@ -67,14 +60,6 @@ def switch_node_state(topology_id, node_name, new_state):
     node_state = update_node_state(topology_id, node_name, 'started')
 
   node_state = update_node_state(topology_id, node_name, new_state)
-
-
-
-def traverse_topology(topology_name):
-  topology_status = compositor.query(topology_name)
-  if not topology_status['fulfilled']:
-    raise RuntimeError('Cannot traverse incomplete topology')
-  deploy(topology_status)
   
 
 def traverse(topology_id):
@@ -103,6 +88,7 @@ def traverse(topology_id):
         yield sub_node
     
     yield (topology_id, node_name)
+
 
 def switch_state(topology_id, new_state):
   for ent_name in traverse(topology_id):
@@ -137,7 +123,12 @@ def get_address_by_host(topology, node_name, host):
       if req_name != 'host':
         continue
       
-      address = mapper.map_node_requirement(topology, node_name, req_name, ['public_address'])
+      address = mapper.map_node_requirement(
+        topology,
+        node_name,
+        req_name,
+        ['public_address']
+      )
       address = address.__root__
       break
 
@@ -168,8 +159,10 @@ def run_operation(topology_id, node_name, interface, operation):
     return
 
   print(operation)
-  inputs = { inp_name: to_python_value(inp) for inp_name, inp in operation.inputs.items() }
-  #print(inputs)
+  inputs = {
+    inp_name: to_python_value(inp)
+    for inp_name, inp in operation.inputs.items()
+  }
   
   host = operation.implementation.operation_host
   address = get_address_by_host(coerced_topology, node_name, host)
@@ -207,13 +200,17 @@ def run_operation(topology_id, node_name, interface, operation):
       raise RuntimeError(f'output {output_name} not provided')
 
     topology = repository.get_topology(topology_id)
-    topology = set_attribute(topology, node_name, output.__root__, run_outputs[output_name])
+    topology = set_attribute(
+      topology,
+      node_name,
+      output.__root__,
+      run_outputs[output_name]
+    )
     repository.update_topology(topology)
 
-    # output.set(instance_model.Primitive(node, {}, run_outputs[output_name]))
-    # instance_storage.add_topology(topology)
 
 
+# TODO(@shishqa): move these functions to tosca operational library
 
 def set_attribute(topology, node_name, path, value):
   # print(path)
@@ -227,12 +224,11 @@ def set_attribute(topology, node_name, path, value):
     raise RuntimeError()
 
   except RuntimeError:
-    raise RuntimeError(f'get_attribute: {topology.metadata["topology_id"]}: {context} {path}')
+    raise RuntimeError(f'cannot map attribute: {path}')
 
 
 def node_set_attribute(topology, node_name, path, value):
   step = path[0]
-  rest = path[1:]
 
   if step in topology.nodes[node_name].attributes.keys():
     topology.nodes[node_name].attributes[step] = value
@@ -256,7 +252,6 @@ def node_set_attribute(topology, node_name, path, value):
 
 def capability_set_attribute(topology, node_name, capability_name, path, value):
   step = path[0]
-  rest = path[1:]
 
   if step in topology.nodes[node_name].capabilities[capability_name].attributes.keys():
     topology.nodes[node_name].capabilities[capability_name].attributes[step] = value

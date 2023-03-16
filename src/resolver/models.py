@@ -23,14 +23,3 @@ class Issues(BaseModel):
 Config.update_forward_refs()
 InstanceConfig.update_forward_refs()
 Issues.update_forward_refs()
-
-
-
-# class SubstitutionAction(BaseModel):
-#     node: str
-#     template_author: str
-#     template_name: str
-
-# class Action(BaseModel):
-#     action_type: str
-#     data: Union[SubstitutionAction]

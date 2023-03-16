@@ -1,5 +1,6 @@
-from ..tosca.normalized import *
-from ..client import repository
+from ..tosca.normalized import (
+  Value, Version, Join, Concat, GetAttribute, GetProperty, GetInput
+)
 
 from . import mapper
 
@@ -174,26 +175,12 @@ def node_get_attribute(topology, node_name, path):
     rest
   )
 
-  # print(f'REQS {node.requirements}')
-  # for req in node.requirements:
-  #   req_name = list(req.keys())[0]
-  #   print(f'REQ {req_name}')
-  #   if req_name == step:
-  #     return node_get_attribute(
-  #       topology,
-  #       topology.nodes[req[req_name].node],
-  #       path[1:]
-  #     )
-
-  # raise RuntimeError(f'get_attribute: {step}')
-
 
 def capability_get_attribute(topology, node_name, capability_name, path):
   node = topology.nodes[node_name]
   capability = node.capabilities[capability_name]
 
   step = path[0]
-  rest = path[1:]
 
   if step in capability.attributes.keys():
     return mapper.map_capability_attribute(

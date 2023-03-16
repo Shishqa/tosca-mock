@@ -15,14 +15,6 @@ instance.init_database()
 app = FastAPI()
 
 
-# class Version(BaseModel):
-#   major: int
-#   minor: int
-#   fix: Union[int, None] = None
-#   qualifier: Union[str, None] = None
-#   build: Union[int, None] = None
-
-
 @app.get("/")
 async def get_root():
     return {
@@ -44,7 +36,7 @@ async def get_templates():
     return definition.get_templates()
 
 @app.post("/templates")
-async def add_template(template: bytes = File()):
+async def add_template(template: bytes = File()) -> NormalizedServiceTemplate:
     template_id = definition.add_raw_template(template)
     return definition.get_template(template_id)
 

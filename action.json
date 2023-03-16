@@ -1,6 +1,0 @@
-{
-  "action_type": "substitute",
-  "node": "os_flavor",
-  "topology_author": "shishqa",
-  "topology_name": "flavor"
-}

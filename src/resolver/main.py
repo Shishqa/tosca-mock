@@ -1,16 +1,10 @@
-from typing import List
-
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request
-
+from fastapi import FastAPI
 
 from . import compositor
 from .models import Config, InstanceConfig
-from ..client import repository
 
 
 app = FastAPI()
-
-
 
 
 @app.get("/configs/{template_id:path}")
@@ -36,39 +30,3 @@ async def delete_cluster(cluster_id: str):
 @app.get("/clusters/{cluster_id}")
 async def query_cluster(cluster_id: str):
     return compositor.query_cluster(cluster_id)
-
-
-# @app.post("/clusters/{author}/{topology_name}")
-# async def resolve_topology_issue(author: str, topology_name: str, actions: List[Action]):
-#     update = compositor.resolve(author, topology_name, actions)
-#     return {
-#         'author': author,
-#         'topology_name': topology_name,
-#         'update': update,
-#         # 'issues': compositor.get_issues(client.get_topology(author, topology_name))
-#     }
-
-
-# @app.get("/clusters/{author}/{topology_name}")
-# async def resolve_topology_issue(author: str, topology_name: str, actions: List[Action]):
-#     update = compositor.resolve(author, topology_name, actions)
-#     return {
-#         'author': author,
-#         'topology_name': topology_name,
-#         'update': update,
-#         # 'issues': compositor.get_issues(client.get_topology(author, topology_name))
-#     }
-
-
-
-
-
-# @app.delete("/clusters/{author}/{topology_name}")
-# async def resolve_topology_issue(author: str, topology_name: str, actions: List[Action]):
-#     update = compositor.resolve(author, topology_name, actions)
-#     return {
-#         'author': author,
-#         'topology_name': topology_name,
-#         'update': update,
-#         # 'issues': compositor.get_issues(client.get_topology(author, topology_name))
-#     }
