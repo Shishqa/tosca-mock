@@ -151,7 +151,7 @@ def map_node_requirement(topology, node_name, requirement_name, rest):
     in topology.substitution_mappings.requirements.items()
   }
 
-  if (node_name, requirement_name) not in reverse_mapping:
+  if (node_name, requirement_name) not in reverse_mapping.keys():
     for req in lower_node.requirements:
       req_name = list(req.keys())[0]
       if req_name == requirement_name:

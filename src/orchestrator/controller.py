@@ -5,7 +5,7 @@ import yaml
 
 from ..client import repository, resolver
 
-from ..resolver import coercer
+from ..resolver import mapper
 
 from . import runner
 
@@ -126,6 +126,7 @@ def switch_state(topology_id, new_state):
     
 
 def get_address_by_host(topology, node_name, host):
+  print(f'NEED A HOST FOR {node_name}')
   node = topology.nodes[node_name]
 
   address = None
@@ -133,10 +134,10 @@ def get_address_by_host(topology, node_name, host):
     for req in node.requirements:
       req_name = list(req.keys())[0]
       print(req[req_name].relationship.type)
-      if req[req_name].relationship.type != 'tosca.relationships.HostedOn':
+      if req_name != 'host':
         continue
       
-      address = coercer.get_attribute(topology, ('NODE', node_name), [ 'SELF', req_name, 'public_address' ])
+      address = mapper.map_node_requirement(topology, node_name, req_name, ['public_address'])
       address = address.__root__
       break
 
@@ -206,7 +207,7 @@ def run_operation(topology_id, node_name, interface, operation):
       raise RuntimeError(f'output {output_name} not provided')
 
     topology = repository.get_topology(topology_id)
-    topology = set_attribute(topology, node_name, output.__root__.__root__, run_outputs[output_name])
+    topology = set_attribute(topology, node_name, output.__root__, run_outputs[output_name])
     repository.update_topology(topology)
 
     # output.set(instance_model.Primitive(node, {}, run_outputs[output_name]))

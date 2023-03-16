@@ -21,6 +21,10 @@ async def get_template_configs(template_id: str) -> Config:
 async def get_clusters():
     return compositor.get_clusters()
 
+@app.get("/dependencies/{cluster_id}")
+async def get_dependencies(cluster_id):
+    return compositor.get_dependencies(cluster_id)
+
 @app.post("/clusters")
 async def create_cluster(config: InstanceConfig):
     return compositor.create_cluster(config)

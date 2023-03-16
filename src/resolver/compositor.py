@@ -60,6 +60,15 @@ def create_cluster(cluster_config):
   return repository.update_topology(topology)
 
 
+def get_dependencies(cluster_id):
+  dependencies = [ cluster_id ]
+  topology = repository.get_topology(cluster_id)
+  for node_name, node in topology.nodes.items():
+    if 'substitution' in node.metadata.keys():
+      dependencies += get_dependencies(node.metadata['substitution'])
+  return dependencies
+  
+
 def get_clusters():
   topologies = repository.get_topologies()
 
