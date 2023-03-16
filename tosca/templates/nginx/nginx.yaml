@@ -16,10 +16,12 @@ topology_template:
 
     nginx:
       type: nginx:Nginx
+      properties:
+        component_version: "1.2.3.alpha-4"
       capabilities:
         data_endpoint:
           attributes:
-            ip_address: { get_attribute: [ SELF, host, public_address ] }
+            ip_address: { join: [ [ "HELLO", { get_attribute: [ SELF, host, public_address ] } ], "$$$" ] }
       interfaces:
         Standard:
           operations:

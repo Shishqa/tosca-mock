@@ -1,14 +1,23 @@
 tosca_definitions_version: tosca_simple_yaml_1_3
 
-imports:
-- ../../profiles/postgres/main.yaml
-
 metadata:
-  template_author: "sadimer"
-  template_name: "postgres-peer"
-  template_version: "1.0.0"
+  template_author: sadimer
+  template_name: postgres-peer
+  template_version: 1.0.0
+
+imports:
+- ../../profiles/sql-database/postgres/main.yaml
+- ../../profiles/sql-database/main.yaml
 
 topology_template:
+  inputs:
+    access_login:
+      type: string
+    access_password:
+      type: string
+    database:
+      type: string
+
   node_templates:
     shishqa-pg-host:
       type: tosca.nodes.Compute
@@ -41,4 +50,21 @@ topology_template:
       directives: [ substitute ]
       requirements:
         - host: shishqa-pg-host
+
+    postgres-db:
+      type: clouni.nodes.postgres.database
+      properties:
+        db_user: { get_input: [ access_login ] }
+        db_password: { get_input: [ access_password ] }
+        db_name: { get_input: [ database ] }
+      requirements:
+        - host: shishqa-pg-host
+        - dbms: postgres
+
+  substitution_mappings:
+    node_type: clouni.nodes.database
+    properties:
+      access_login: [ access_login ]
+      access_password: [ access_password ]
+      database: [ database ]
 

@@ -62,6 +62,9 @@ def create_function(node, meta, function_call):
 
   if function_call['name'] == 'tosca.function.concat':
     return Concat(node, meta, function_call['arguments'])
+  
+  if function_call['name'] == 'tosca.function.join':
+    return Join(node, meta, function_call['arguments'])
 
   raise RuntimeError(f'unknown function {function_call}')
 
@@ -96,7 +99,21 @@ class Primitive(ValueInstance):
 class Version(ValueInstance):
   def __init__(self, node, meta, primitive):
     super().__init__(node, meta)
+    self.major = primitive['major']
+    self.minor = primitive['minor']
+    self.fix = primitive['fix']
+    self.build = primitive['build']
+    self.qualifier = primitive['qualifier']
     self.value = primitive['$string']
+
+  def render(self):
+    return {
+      'major_version': self.major,
+      'minor_version': self.minor,
+      'fix_version': self.fix if self.fix != 0 else None,
+      'qualifier': self.qualifier if self.qualifier != "" else None,
+      'build_version': self.build if self.build != 0 else None,
+    }
 
   def get(self):
     return self.value
@@ -165,7 +182,10 @@ class Map(ValueInstance):
 class GetInput(ValueInstance):
   def __init__(self, node, meta, args):
     super().__init__(node, meta)
-    self.input_name = args[0]['$primitive']
+    if isinstance(args[0], str):
+      self.input_name = args[0]
+    else:
+      self.input_name = args[0]['$primitive']
 
   def render(self):
     return {
@@ -179,7 +199,10 @@ class GetInput(ValueInstance):
 class GetProperty(ValueInstance):
   def __init__(self, node, meta, args):
     super().__init__(node, meta)
-    self.args = [e['$primitive'] for e in args]
+    if isinstance(args[0], str):
+      self.args = copy.deepcopy(args)
+    else:
+      self.args = [ a['$primitive'] for a in args ]
 
   def render(self):
     return {
@@ -213,7 +236,10 @@ class GetProperty(ValueInstance):
 class GetAttribute(ValueInstance):
   def __init__(self, node, meta, args):
     super().__init__(node, meta)
-    self.args = [e['$primitive'] for e in args]
+    if isinstance(args[0], str):
+      self.args = copy.deepcopy(args)
+    else:
+      self.args = [ a['$primitive'] for a in args ]
 
   def render(self):
     return {
@@ -292,6 +318,29 @@ class Concat(ValueInstance):
 
   def render(self):
     return { 'concat': [a.render() for a in self.args] }
+
+  def get(self):
+    strings = [a.get() for a in self.args]
+    return ''.join(strings)
+
+
+class Join(ValueInstance):
+  def __init__(self, node, type_def, args):
+    super().__init__(node, type_def)
+    
+    join_args = args[0]['$primitive']
+    self.args = []
+    for arg in join_args:
+      if isinstance(arg, str):
+        self.args.append(Primitive(node, {}, arg))
+      else:
+        self.args.append(create_function(node, {}, arg))
+    self.delimiter = None
+    if len(args) > 0:
+      self.delimiter = args[1]['$primitive']
+
+  def render(self):
+    return { 'join': [ [a.render() for a in self.args] ] + ([self.delimiter] if self.delimiter is not None else []) }
 
   def get(self):
     strings = [a.get() for a in self.args]
@@ -425,6 +474,8 @@ class CapabilityInstance:
       if 'parent' in type_body.keys():
         seen.remove(type_body['parent'])
     self.type = seen.pop()
+    if 'tosca::' in self.type:
+      self.type = f'tosca.capabilities.{self.type[7:]}'
 
   def find_property(self, args):
     path = args[0]
@@ -514,6 +565,11 @@ class InterfaceInstance:
       if 'parent' in type_body.keys():
         seen.remove(type_body['parent'])
     self.type = seen.pop()
+    if 'tosca::' in self.type:
+      if self.type == 'tosca::Standard':
+        self.type = 'tosca.interfaces.node.lifecycle.Standard'
+      elif  self.type == 'tosca::Configure':
+        self.type = 'tosca.interfaces.relationship.Configure'
 
   def render(self):
     return {
@@ -585,6 +641,8 @@ class RelationshipInstance:
       if 'parent' in type_body.keys():
         seen.remove(type_body['parent'])
     self.type = seen.pop()
+    if 'tosca::' in self.type:
+      self.type = f'tosca.relationships.{self.type[7:]}'
 
 
 class NodeInstance:
@@ -679,6 +737,8 @@ class NodeInstance:
       if 'parent' in type_body.keys():
         seen.remove(type_body['parent'])
     self.type = seen.pop()
+    if 'tosca::' in self.type:
+      self.type = f'tosca.nodes.{self.type[7:]}'
 
   def find_property(self, args):
     path = args[0]
@@ -748,7 +808,11 @@ class TopologyTemplateInstance:
 
       has_substitution = True
       
-      self.substitution_mappings['node_type'] = vertex['properties']['type']
+      substitution_type = vertex['properties']['type']
+      if 'tosca::' in substitution_type:
+        substitution_type = f'tosca.nodes.{substitution_type[7:]}'
+      
+      self.substitution_mappings['node_type'] = substitution_type
       for prop_name, input_name in vertex['properties']['inputs'].items():
         self.substitution_mappings['properties'][prop_name] = [ input_name ]
       

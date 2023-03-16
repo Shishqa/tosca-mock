@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "template_name": "nova-flavor-discovered-with-ansible",
+    "template_author": "shishqa",
+    "template_version": "1.0",
+    "template_id": "shishqa/nova-flavor-discovered-with-ansible"
+  },
+  "inputs": {
+    "mem_size": 0,
+    "disk_size": 0,
+    "num_cpus": 0
+  },
+  "nodes": {
+    "os_flavor": {
+      "artifacts": {},
+      "attributes": {
+        "state": "initial",
+        "tosca_id": null,
+        "tosca_name": null
+      },
+      "capabilities": {
+        "flavor": {
+          "attributes": {
+            "openstack_id": null
+          },
+          "properties": {
+            "disk_size": {
+              "get_input": [
+                "disk_size"
+              ]
+            },
+            "mem_size": {
+              "get_input": [
+                "mem_size"
+              ]
+            },
+            "num_cpus": {
+              "get_input": [
+                "num_cpus"
+              ]
+            }
+          },
+          "type": "nova.Flavor"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": {
+                "primary": "artifacts/openstack/ansible/os_flavor_find.yaml",
+                "dependencies": [],
+                "operation_host": "ORCHESTRATOR"
+              },
+              "inputs": {
+                "required_ram": {
+                  "get_property": [
+                    "SELF",
+                    "flavor",
+                    "mem_size"
+                  ]
+                },
+                "required_vcpus": {
+                  "get_property": [
+                    "SELF",
+                    "flavor",
+                    "num_cpus"
+                  ]
+                },
+                "required_disk": {
+                  "get_property": [
+                    "SELF",
+                    "flavor",
+                    "disk_size"
+                  ]
+                }
+              },
+              "outputs": {
+                "id": [
+                  "SELF",
+                  "flavor",
+                  "openstack_id"
+                ]
+              }
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [],
+      "type": "nova.Flavor"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "nova.Flavor",
+    "attributes": {},
+    "properties": {},
+    "capabilities": {
+      "flavor": [
+        "os_flavor",
+        "flavor"
+      ]
+    },
+    "requirements": {}
+  }
+}

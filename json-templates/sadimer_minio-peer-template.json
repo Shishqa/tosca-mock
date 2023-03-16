@@ -1,0 +1,538 @@
+{
+  "metadata": {
+    "template_author": "sadimer",
+    "template_name": "minio-peer",
+    "template_version": "1.0.0",
+    "template_id": "sadimer/minio-peer"
+  },
+  "inputs": {
+    "access_password": null,
+    "access_token": null,
+    "storage_name": null,
+    "storage_dir": null
+  },
+  "nodes": {
+    "minio": {
+      "artifacts": {},
+      "attributes": {
+        "access_uri": {
+          "concat": [
+            {
+              "get_attribute": [
+                "SELF",
+                "host",
+                "public_address"
+              ]
+            },
+            ":9000"
+          ]
+        },
+        "state": "initial",
+        "tosca_id": null,
+        "tosca_name": null
+      },
+      "capabilities": {
+        "storage": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Root"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "console_address": "0.0.0.0",
+        "minio_root_user": {
+          "get_input": [
+            "access_token"
+          ]
+        },
+        "minio_root_password": {
+          "get_input": [
+            "access_password"
+          ]
+        },
+        "data_dir": {
+          "concat": [
+            "/",
+            {
+              "get_input": [
+                "storage_dir"
+              ]
+            }
+          ]
+        },
+        "minio_binary_file_url": "https://dl.min.io/server/minio/release/linux-amd64/minio",
+        "console_port": 9001
+      },
+      "requirements": [
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": "shishqa-minio-host",
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        }
+      ],
+      "type": "clouni.nodes.minio.server"
+    },
+    "bucket": {
+      "artifacts": {},
+      "attributes": {
+        "artifact_store_uri": {
+          "concat": [
+            "s3://",
+            {
+              "get_property": [
+                "SELF",
+                "bucket_name"
+              ]
+            }
+          ]
+        },
+        "tosca_name": null,
+        "state": "initial",
+        "tosca_id": null
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "bucket_name": {
+          "get_input": [
+            "storage_name"
+          ]
+        },
+        "mc_binary_file_url": "https://dl.min.io/client/mc/release/linux-amd64/mc"
+      },
+      "requirements": [
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": "shishqa-minio-host",
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        },
+        {
+          "storage": {
+            "capability": null,
+            "directives": [],
+            "node": "minio",
+            "relationship": {
+              "attributes": {
+                "state": "initial",
+                "tosca_id": null,
+                "tosca_name": null
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        }
+      ],
+      "type": "clouni.nodes.minio.bucket"
+    },
+    "shishqa-minio-host": {
+      "artifacts": {},
+      "attributes": {
+        "networks": null,
+        "ports": null,
+        "tosca_name": null,
+        "state": "initial",
+        "tosca_id": null,
+        "private_address": null,
+        "public_address": null
+      },
+      "capabilities": {
+        "host": {
+          "attributes": {},
+          "properties": {
+            "disk_size": 10737418240,
+            "mem_size": 1073741824,
+            "name": {
+              "get_attribute": [
+                "SELF",
+                "tosca_name"
+              ]
+            },
+            "num_cpus": 1
+          },
+          "type": "tosca.capabilities.Compute"
+        },
+        "endpoint": {
+          "attributes": {
+            "ip_address": null
+          },
+          "properties": {
+            "protocol": "tcp",
+            "network_name": "net-for-intra-sandbox",
+            "secure": true,
+            "initiator": "source"
+          },
+          "type": "tosca.capabilities.Endpoint.Admin"
+        },
+        "os": {
+          "attributes": {},
+          "properties": {
+            "architecture": "LTS-Focal-Fossa",
+            "distribution": "Ubuntu-Server",
+            "version": {
+              "major_version": 20,
+              "minor_version": 4,
+              "fix_version": null,
+              "qualifier": null,
+              "build_version": null
+            }
+          },
+          "type": "tosca.capabilities.OperatingSystem"
+        },
+        "scalable": {
+          "attributes": {},
+          "properties": {
+            "min_instances": 1,
+            "max_instances": 1,
+            "default_instances": 1
+          },
+          "type": "tosca.capabilities.Scalable"
+        },
+        "binding": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Bindable"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [],
+      "type": "tosca.nodes.Compute"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "clouni.nodes.objectStorage",
+    "attributes": {
+      "artifact_store_uri": [
+        "bucket",
+        "artifact_store_uri"
+      ],
+      "access_uri": [
+        "minio",
+        "access_uri"
+      ]
+    },
+    "properties": {
+      "storage_dir": [
+        "storage_dir"
+      ],
+      "access_password": [
+        "access_password"
+      ],
+      "access_token": [
+        "access_token"
+      ],
+      "storage_name": [
+        "storage_name"
+      ]
+    },
+    "capabilities": {},
+    "requirements": {}
+  }
+}

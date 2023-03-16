@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "template_name": "server_example",
+    "template_author": "shishqa",
+    "template_version": "1.0",
+    "template_id": "shishqa/server_example"
+  },
+  "inputs": {},
+  "nodes": {
+    "test-from-orchestrator": {
+      "artifacts": {},
+      "attributes": {
+        "private_address": null,
+        "public_address": null,
+        "networks": null,
+        "ports": null,
+        "tosca_name": null,
+        "state": "initial",
+        "tosca_id": null
+      },
+      "capabilities": {
+        "endpoint": {
+          "attributes": {
+            "ip_address": null
+          },
+          "properties": {
+            "protocol": "tcp",
+            "secure": true,
+            "network_name": "net-for-intra-sandbox",
+            "initiator": "source"
+          },
+          "type": "tosca.capabilities.Endpoint.Admin"
+        },
+        "os": {
+          "attributes": {},
+          "properties": {
+            "distribution": "Ubuntu-Server",
+            "version": {
+              "major_version": 20,
+              "minor_version": 4,
+              "fix_version": null,
+              "qualifier": null,
+              "build_version": null
+            },
+            "architecture": "LTS-Focal-Fossa"
+          },
+          "type": "tosca.capabilities.OperatingSystem"
+        },
+        "scalable": {
+          "attributes": {},
+          "properties": {
+            "max_instances": 5,
+            "default_instances": 1,
+            "min_instances": 1
+          },
+          "type": "tosca.capabilities.Scalable"
+        },
+        "binding": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Bindable"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        },
+        "host": {
+          "attributes": {},
+          "properties": {
+            "disk_size": 10737418240,
+            "mem_size": 1073741824,
+            "name": {
+              "get_attribute": [
+                "SELF",
+                "tosca_name"
+              ]
+            },
+            "num_cpus": 1
+          },
+          "type": "tosca.capabilities.Compute"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [],
+      "type": "tosca.nodes.Compute"
+    }
+  },
+  "substitution_mappings": null
+}

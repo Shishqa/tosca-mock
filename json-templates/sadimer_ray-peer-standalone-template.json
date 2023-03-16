@@ -1,0 +1,414 @@
+{
+  "metadata": {
+    "template_version": "1.0.0",
+    "template_author": "sadimer",
+    "template_name": "ray-peer-standalone",
+    "template_id": "sadimer/ray-peer-standalone"
+  },
+  "inputs": {
+    "additional_packages": null
+  },
+  "nodes": {
+    "shishqa-ray-master": {
+      "artifacts": {},
+      "attributes": {
+        "state": "initial",
+        "tosca_id": null,
+        "private_address": null,
+        "public_address": null,
+        "networks": null,
+        "ports": null,
+        "tosca_name": null
+      },
+      "capabilities": {
+        "scalable": {
+          "attributes": {},
+          "properties": {
+            "default_instances": 1,
+            "min_instances": 1,
+            "max_instances": 1
+          },
+          "type": "tosca.capabilities.Scalable"
+        },
+        "binding": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Bindable"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        },
+        "host": {
+          "attributes": {},
+          "properties": {
+            "num_cpus": 1,
+            "disk_size": 10737418240,
+            "mem_size": 1073741824,
+            "name": {
+              "get_attribute": [
+                "SELF",
+                "tosca_name"
+              ]
+            }
+          },
+          "type": "tosca.capabilities.Compute"
+        },
+        "endpoint": {
+          "attributes": {
+            "ip_address": null
+          },
+          "properties": {
+            "network_name": "net-for-intra-sandbox",
+            "initiator": "source",
+            "protocol": "tcp",
+            "secure": true
+          },
+          "type": "tosca.capabilities.Endpoint.Admin"
+        },
+        "os": {
+          "attributes": {},
+          "properties": {
+            "architecture": "LTS-Focal-Fossa",
+            "distribution": "Ubuntu-Server",
+            "version": {
+              "major_version": 20,
+              "minor_version": 4,
+              "fix_version": null,
+              "qualifier": null,
+              "build_version": null
+            }
+          },
+          "type": "tosca.capabilities.OperatingSystem"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [],
+      "type": "tosca.nodes.Compute"
+    },
+    "ray-master": {
+      "artifacts": {},
+      "attributes": {
+        "tosca_id": null,
+        "tosca_name": null,
+        "state": "initial"
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [
+        "substitute"
+      ],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "additional_packages": {
+          "get_input": [
+            "additional_packages"
+          ]
+        },
+        "port": 6379
+      },
+      "requirements": [
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": "shishqa-ray-master",
+            "relationship": {
+              "attributes": {
+                "tosca_name": null,
+                "state": "initial",
+                "tosca_id": null
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        },
+        {
+          "artifact-storage": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.ConnectsTo"
+            }
+          }
+        },
+        {
+          "slave": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.ConnectsTo"
+            }
+          }
+        }
+      ],
+      "type": "clouni.nodes.ray.master"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "clouni.nodes.ray",
+    "attributes": {},
+    "properties": {
+      "additional_packages": [
+        "additional_packages"
+      ]
+    },
+    "capabilities": {},
+    "requirements": {
+      "artifact-storage": [
+        "ray-master",
+        "artifact-storage"
+      ]
+    }
+  }
+}

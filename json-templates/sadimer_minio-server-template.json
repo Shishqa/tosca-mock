@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "template_version": "1.0.0",
+    "template_author": "sadimer",
+    "template_name": "minio-server",
+    "template_id": "sadimer/minio-server"
+  },
+  "inputs": {
+    "component_version": null,
+    "data_dir": null,
+    "console_port": null,
+    "console_address": null,
+    "minio_root_password": null,
+    "minio_root_user": null,
+    "minio_binary_file_url": null
+  },
+  "nodes": {
+    "minio": {
+      "artifacts": {
+        "artifacts/minio/ansible/roles/minio_install": {
+          "deploy_path": "roles/minio_install",
+          "file": "file:/home/shishqa/dev/ispras/tosca-mock/artifacts/minio/ansible/roles/minio_install",
+          "type": "tosca.artifacts.File"
+        }
+      },
+      "attributes": {
+        "access_uri": null,
+        "tosca_name": null,
+        "state": "initial",
+        "tosca_id": null
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        },
+        "storage": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Root"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "create": {
+              "implementation": {
+                "primary": "artifacts/minio/ansible/server.yaml",
+                "dependencies": [
+                  "artifacts/minio/ansible/roles/minio_install"
+                ],
+                "operation_host": "HOST"
+              },
+              "inputs": {
+                "minio_root_user": {
+                  "get_property": [
+                    "SELF",
+                    "minio_root_user"
+                  ]
+                },
+                "minio_binary_file_url": {
+                  "get_property": [
+                    "SELF",
+                    "minio_binary_file_url"
+                  ]
+                },
+                "data_dir": {
+                  "get_property": [
+                    "SELF",
+                    "data_dir"
+                  ]
+                },
+                "console_port": {
+                  "get_property": [
+                    "SELF",
+                    "console_port"
+                  ]
+                },
+                "console_address": {
+                  "get_property": [
+                    "SELF",
+                    "console_address"
+                  ]
+                },
+                "minio_root_password": {
+                  "get_property": [
+                    "SELF",
+                    "minio_root_password"
+                  ]
+                }
+              },
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "component_version": {
+          "get_input": [
+            "component_version"
+          ]
+        },
+        "data_dir": {
+          "get_input": [
+            "data_dir"
+          ]
+        },
+        "console_port": {
+          "get_input": [
+            "console_port"
+          ]
+        },
+        "console_address": {
+          "get_input": [
+            "console_address"
+          ]
+        },
+        "minio_root_password": {
+          "get_input": [
+            "minio_root_password"
+          ]
+        },
+        "minio_root_user": {
+          "get_input": [
+            "minio_root_user"
+          ]
+        },
+        "minio_binary_file_url": {
+          "get_input": [
+            "minio_binary_file_url"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        }
+      ],
+      "type": "clouni.nodes.minio.server"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "clouni.nodes.minio.server",
+    "attributes": {},
+    "properties": {
+      "console_port": [
+        "console_port"
+      ],
+      "console_address": [
+        "console_address"
+      ],
+      "minio_root_password": [
+        "minio_root_password"
+      ],
+      "minio_root_user": [
+        "minio_root_user"
+      ],
+      "minio_binary_file_url": [
+        "minio_binary_file_url"
+      ],
+      "component_version": [
+        "component_version"
+      ],
+      "data_dir": [
+        "data_dir"
+      ]
+    },
+    "capabilities": {},
+    "requirements": {
+      "host": [
+        "minio",
+        "host"
+      ]
+    }
+  }
+}

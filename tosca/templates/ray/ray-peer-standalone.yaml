@@ -1,0 +1,58 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_author: sadimer
+  template_name: ray-peer-standalone
+  template_version: 1.0.0
+
+imports:
+- ../../profiles/ray/main.yaml
+
+topology_template:
+  inputs:
+    additional_packages:
+      type: list
+      entry_schema:
+        type: string
+
+  node_templates:
+    shishqa-ray-master:
+      type: tosca.nodes.Compute
+      directives: [ substitute ]
+      capabilities:
+        host:
+          properties:
+            name: { get_attribute: [ SELF, tosca_name ] }
+            num_cpus: 1
+            disk_size: 10 GiB
+            mem_size: 1 GiB
+        endpoint:
+          properties:
+            network_name: net-for-intra-sandbox
+        os:
+          properties:
+            architecture: LTS-Focal-Fossa
+            distribution: Ubuntu-Server
+            version: "20.04"
+        scalable:
+          properties:
+            min_instances: 1
+            max_instances: 1
+            default_instances: 1
+
+    ray-master:
+      type: clouni.nodes.ray.master
+      directives: [ substitute ]
+      properties:
+        additional_packages: { get_input: [ additional_packages ] }
+      requirements:
+        - host: shishqa-ray-master
+
+  substitution_mappings:
+    node_type: clouni.nodes.ray
+    properties:
+      additional_packages: [ additional_packages ]
+    requirements:
+      artifact-storage: [ ray-master, artifact-storage ]
+
+

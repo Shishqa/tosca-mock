@@ -73,8 +73,41 @@ def coerce(topology, context, attr):
     return get_attribute(topology, context, attr.__root__.get_property)
   if isinstance(attr.__root__, GetInput):
     return get_input(topology, attr.__root__.get_input)
+  if isinstance(attr.__root__, Concat):
+    return concat(topology, context, attr.__root__.concat)
+  if isinstance(attr.__root__, Join):
+    return join(topology, context, attr.__root__.join)
+  if isinstance(attr.__root__, Version):
+    return version(topology, attr.__root__)
 
   return attr
+
+
+def concat(topology, context, values):
+  coerced_values = [ coerce(topology, context, value) or Value(__root__="<UNK>") for value in values ]
+  for coerced_value in coerced_values:
+    assert isinstance(coerced_value.__root__, str)
+  return Value(__root__=''.join([ str(val.__root__) for val in coerced_values ]))
+
+
+def join(topology, context, values):
+  strings = [ str(coerce(topology, context, value)) for value in values[0] ]
+  delimiter = ""
+  if len(values) > 1:
+    delimiter = values[1]
+  return Value(__root__=delimiter.join(strings))
+
+
+def version(topology, version_dict):
+  version_str = f'{version_dict.major_version}.{version_dict.minor_version}'
+  if version_dict.fix_version is not None:
+    version_str = f'{version_str}.{version_dict.fix_version}'
+  if version_dict.qualifier is not None:
+    version_str = f'{version_str}.{version_dict.qualifier}'
+  if version_dict.build_version is not None:
+    version_str = f'{version_str}.{version_dict.build_version}'
+  return Value(__root__=version_str)
+  
 
 
 def get_input(topology, path):

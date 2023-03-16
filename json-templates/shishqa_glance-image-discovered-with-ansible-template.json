@@ -1,0 +1,125 @@
+{
+  "metadata": {
+    "template_name": "glance-image-discovered-with-ansible",
+    "template_author": "shishqa",
+    "template_version": "1.0",
+    "template_id": "shishqa/glance-image-discovered-with-ansible"
+  },
+  "inputs": {},
+  "nodes": {
+    "os_image": {
+      "artifacts": {},
+      "attributes": {
+        "state": "initial",
+        "tosca_id": null,
+        "tosca_name": null
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        },
+        "image": {
+          "attributes": {
+            "openstack_id": null
+          },
+          "properties": {
+            "architecture": "test",
+            "version": {
+              "major_version": 0,
+              "minor_version": 0,
+              "fix_version": null,
+              "qualifier": null,
+              "build_version": null
+            },
+            "distribution": "test"
+          },
+          "type": "glance.WebImage"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": {
+                "primary": "artifacts/openstack/ansible/os_image_find.yaml",
+                "dependencies": [],
+                "operation_host": "ORCHESTRATOR"
+              },
+              "inputs": {
+                "required_distro": {
+                  "get_property": [
+                    "SELF",
+                    "image",
+                    "distribution"
+                  ]
+                },
+                "required_arch": {
+                  "get_property": [
+                    "SELF",
+                    "image",
+                    "architecture"
+                  ]
+                },
+                "required_version": {
+                  "get_property": [
+                    "SELF",
+                    "image",
+                    "version"
+                  ]
+                }
+              },
+              "outputs": {
+                "id": [
+                  "SELF",
+                  "image",
+                  "openstack_id"
+                ]
+              }
+            },
+            "create": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [],
+      "type": "glance.WebImage"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "glance.WebImage",
+    "attributes": {},
+    "properties": {},
+    "capabilities": {
+      "image": [
+        "os_image",
+        "image"
+      ]
+    },
+    "requirements": {}
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "template_id": "sadimer/mlflow-ray-demo",
+  "inputs": {},
+  "substitutions": {
+    "object-store": [
+      "sadimer/minio-peer"
+    ],
+    "ray": [
+      "sadimer/ray-peer-standalone",
+      "sadimer/ray-cluster-5",
+      "sadimer/ray-cluster-3",
+      "sadimer/ray-cluster-4"
+    ]
+  }
+}

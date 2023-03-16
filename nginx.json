@@ -1,0 +1,213 @@
+{
+  "metadata": {
+    "template_name": "nginx-ansible",
+    "template_author": "shishqa",
+    "template_version": "1.0",
+    "template_id": "shishqa/nginx-ansible"
+  },
+  "inputs": {},
+  "nodes": {
+    "nginx": {
+      "artifacts": {},
+      "attributes": {
+        "tosca_id": null,
+        "tosca_name": null,
+        "state": "initial"
+      },
+      "capabilities": {
+        "host": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca::Compute"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca::Node"
+        },
+        "data_endpoint": {
+          "attributes": {
+            "ip_address": {
+              "join": [
+                [
+                  "HELLO",
+                  {
+                    "get_attribute": [
+                      "SELF",
+                      "host",
+                      "public_address"
+                    ]
+                  }
+                ],
+                "$$$"
+              ]
+            }
+          },
+          "properties": {
+            "protocol": "tcp",
+            "secure": false,
+            "network_name": "PRIVATE",
+            "initiator": "source"
+          },
+          "type": "tosca::Endpoint"
+        },
+        "admin_endpoint": {
+          "attributes": {
+            "ip_address": null
+          },
+          "properties": {
+            "network_name": "PRIVATE",
+            "initiator": "source",
+            "protocol": "tcp",
+            "secure": true
+          },
+          "type": "tosca::Endpoint.Admin"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "create": {
+              "implementation": {
+                "primary": "artifacts/nginx/ansible/create.yaml",
+                "dependencies": [],
+                "operation_host": "HOST"
+              },
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": {
+                "primary": "artifacts/nginx/ansible/start.yaml",
+                "dependencies": [],
+                "operation_host": "HOST"
+              },
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca::Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "component_version": {
+          "major_version": 1,
+          "minor_version": 2,
+          "fix_version": 3,
+          "qualifier": "alpha",
+          "build_version": 4
+        }
+      },
+      "requirements": [
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca::Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca::HostedOn"
+            }
+          }
+        }
+      ],
+      "type": "Nginx"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "Nginx",
+    "attributes": {},
+    "properties": {},
+    "capabilities": {
+      "data_endpoint": [
+        "nginx",
+        "data_endpoint"
+      ],
+      "admin_endpoint": [
+        "nginx",
+        "admin_endpoint"
+      ],
+      "host": [
+        "nginx",
+        "host"
+      ]
+    },
+    "requirements": {}
+  }
+}

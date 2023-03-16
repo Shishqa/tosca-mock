@@ -1,0 +1,215 @@
+{
+  "metadata": {
+    "template_version": "1.0",
+    "template_name": "neutron-security-group-rule-ansible",
+    "template_author": "shishqa",
+    "template_id": "shishqa/neutron-security-group-rule-ansible"
+  },
+  "inputs": {
+    "direction": null,
+    "port_range_max": null,
+    "port_range_min": null,
+    "ethertype": null,
+    "protocol": null,
+    "remote_ip_prefix": null
+  },
+  "nodes": {
+    "os_security_group_rule": {
+      "artifacts": {},
+      "attributes": {
+        "state": "initial",
+        "tosca_id": null,
+        "tosca_name": null
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": {
+                "primary": "artifacts/openstack/ansible/os_security_group_create.yaml",
+                "dependencies": [],
+                "operation_host": "ORCHESTRATOR"
+              },
+              "inputs": {
+                "name": {
+                  "get_property": [
+                    "SELF",
+                    "security_group",
+                    "name"
+                  ]
+                }
+              },
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "direction": {
+          "get_input": [
+            "direction"
+          ]
+        },
+        "port_range_max": {
+          "get_input": [
+            "port_range_max"
+          ]
+        },
+        "port_range_min": {
+          "get_input": [
+            "port_range_min"
+          ]
+        },
+        "ethertype": {
+          "get_input": [
+            "ethertype"
+          ]
+        },
+        "protocol": {
+          "get_input": [
+            "protocol"
+          ]
+        },
+        "remote_ip_prefix": {
+          "get_input": [
+            "remote_ip_prefix"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "security_group": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_name": null,
+                "state": "initial",
+                "tosca_id": null
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.DependsOn"
+            }
+          }
+        }
+      ],
+      "type": "neutron.SecurityGroupRule"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "neutron.SecurityGroupRule",
+    "attributes": {},
+    "properties": {
+      "remote_ip_prefix": [
+        "remote_ip_prefix"
+      ],
+      "direction": [
+        "direction"
+      ],
+      "port_range_max": [
+        "port_range_max"
+      ],
+      "port_range_min": [
+        "port_range_min"
+      ],
+      "ethertype": [
+        "ethertype"
+      ],
+      "protocol": [
+        "protocol"
+      ]
+    },
+    "capabilities": {},
+    "requirements": {
+      "security_group": [
+        "os_security_group_rule",
+        "security_group"
+      ]
+    }
+  }
+}

@@ -28,7 +28,13 @@ def map_node_attribute(topology, node_name, attr_name):
   lower_attr_name = mapping[1]
   lower_attr = lower_node.attributes[lower_attr_name]
 
-  return map_node_attribute(lower_topology, lower_node_name, lower_attr_name)
+  lower_value = map_node_attribute(lower_topology, lower_node_name, lower_attr_name)
+  if lower_value is not None:
+    return lower_value
+  
+  value = coercer.coerce(topology, ('NODE', node_name), upper_node.attributes[attr_name])
+  return value
+  
 
 
 def map_capability_attribute(topology, node_name, capability_name, attr_name):
@@ -75,6 +81,9 @@ def map_topology_input(topology, input_name):
     return topology.inputs[input_name]
 
   upper_prop_name = mapped_inputs[input_name]
+  if upper_prop_name not in upper_node.properties.keys():
+    return None
+  
   return coercer.coerce(
     upper_topology,
     ('NODE', upper_node_name),
@@ -153,15 +162,9 @@ def map_node_requirement(topology, node_name, requirement_name, rest):
         )
 
   upper_requirement_name = reverse_mapping[(node_name, requirement_name)]
-  for req in upper_node.requirements:
-    req_name = list(req.keys())[0]
-    if req_name != upper_requirement_name:
-      continue
-
-    return coercer.node_get_attribute(
-      upper_topology,
-      req[req_name].node,
-      rest
-    )
-
-  raise RuntimeError()
+  return map_node_requirement(
+    upper_topology,
+    upper_node_name,
+    upper_requirement_name,
+    rest
+  )

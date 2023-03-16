@@ -1,10 +1,18 @@
 from __future__ import annotations
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Tuple, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
 
+
+class Version(BaseModel):
+    major_version: int
+    minor_version: int
+    fix_version: Optional[int]
+    qualifier: Optional[str]
+    build_version: Optional[int]
+    
 class GetInput(BaseModel):
-    get_input: List[str]
+    get_input: Tuple[str]
 
 class GetProperty(BaseModel):
     get_property: List[str]
@@ -14,12 +22,34 @@ class GetAttribute(BaseModel):
 
 class Concat(BaseModel):
     concat: List[Value]
+    
+class Join(BaseModel):
+    join: Union[Tuple[List[Value], str], Tuple[List[Value]]]
 
 class OutputMapping(BaseModel):
     __root__: List[str]
 
 class Value(BaseModel):
-    __root__: Union[GetInput, GetProperty, GetAttribute, OutputMapping, Concat, int, str]
+    __root__: Union[
+        # property functions
+        GetInput,
+        GetProperty,
+        # attribute functions
+        GetAttribute,
+        #OutputMapping,
+        # utility functions
+        Concat,
+        Join,
+        # tosca types
+        Version,
+        # basic types
+        List[Value],
+        Dict[str, Value],
+        StrictInt,
+        StrictFloat,
+        StrictBool,
+        StrictStr,
+    ]
 
 
 class Capability(BaseModel):
@@ -37,7 +67,7 @@ class ImplementationDefinition(BaseModel):
 class Operation(BaseModel):
     implementation: Optional[ImplementationDefinition]
     inputs: Dict[str, Optional[Value]] = {}
-    outputs: Dict[str, Optional[Value]] = {}
+    outputs: Dict[str, OutputMapping] = {}
 
 
 class Interface(BaseModel):
@@ -94,3 +124,4 @@ class NormalizedServiceTemplate(BaseModel):
 
 
 Concat.update_forward_refs()
+Join.update_forward_refs()

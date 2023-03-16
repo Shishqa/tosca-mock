@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "template_name": "mlflow-peer",
+    "template_version": "1.0.0",
+    "template_author": "sadimer",
+    "template_id": "sadimer/mlflow-peer"
+  },
+  "inputs": {},
+  "nodes": {},
+  "substitution_mappings": null
+}

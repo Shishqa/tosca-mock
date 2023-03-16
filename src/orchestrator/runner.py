@@ -37,7 +37,8 @@ def _get_inventory(host):
 
 
 def run_artifact(host, primary, variables, dependencies):
-    # print(dependencies)
+    print(variables)
+    print(dependencies)
     # print(host)
 
     # pylint: disable=too-many-locals

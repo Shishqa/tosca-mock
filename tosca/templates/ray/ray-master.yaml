@@ -1,0 +1,56 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_author: sadimer
+  template_name: ray-master
+  template_version: 1.0.0
+
+imports:
+- ../../profiles/ray/main.yaml
+
+
+topology_template:
+  inputs:
+    additional_packages:
+      type: list
+      entry_schema:
+        type: string
+    port:
+      type: PortDef
+
+  node_templates:
+    ray-master:
+      type: clouni.nodes.ray.master
+      properties:
+        additional_packages: { get_input: [ additional_packages ] }
+        port: { get_input: [ port ] }
+      interfaces:
+        Standard:
+          operations:
+            create:
+              inputs:
+                additional_packages: { get_property: [ SELF, additional_packages ] }
+                master_port: { get_property: [ SELF, port ] }
+                s3_endpoint_uri: { get_attribute: [ SELF, artifact-storage, access_uri ] }
+                minio_key: { get_property: [ SELF, artifact-storage, access_token ] }
+                minio_secret: { get_property: [ SELF, artifact-storage, access_password ] }
+              implementation:
+                primary: artifacts/ray/ansible/master.yaml
+                operation_host: HOST
+                dependencies:
+                  - artifacts/ray/ansible/roles/ray_master_install
+      artifacts:
+        artifacts/ray/ansible/roles/ray_master_install:
+          file: artifacts/ray/ansible/roles/ray_master_install/
+          type: tosca.artifacts.File
+          deploy_path: roles/ray_master_install
+
+  substitution_mappings:
+    node_type: clouni.nodes.ray.master
+    properties:
+      additional_packages: [ additional_packages ]
+      port: [ port ]
+    requirements:
+      host: [ ray-master, host ]
+      slave: [ ray-master, slave ]
+      artifact-storage: [ ray-master, artifact-storage ]

@@ -49,7 +49,7 @@ async def add_template(template: bytes = File()):
     return definition.get_template(template_id)
 
 @app.get("/templates/{template_id:path}")
-async def get_template(template_id: str):
+async def get_template(template_id: str) -> NormalizedServiceTemplate:
     return definition.get_template(template_id)
 
 @app.delete("/templates/{template_id:path}")
@@ -68,7 +68,7 @@ async def get_topologies():
     return instance.get_topologies()
 
 @app.post("/topologies")
-async def add_topology(topology_init: TopologyInit):
+async def add_topology(topology_init: TopologyInit) -> NormalizedServiceTemplate:
     normalized_template = definition.get_template(
         topology_init.template_id
     )
@@ -76,12 +76,16 @@ async def add_topology(topology_init: TopologyInit):
     return instance.get_topology(topology_id)
 
 @app.put("/topologies/{topology_id}")
-async def update_topology(topology_id: str, topology_json: NormalizedServiceTemplate):
+async def update_topology(
+    topology_id: str, 
+    topology_json: 
+    NormalizedServiceTemplate
+) -> NormalizedServiceTemplate:
     instance.update_topology(topology_id, topology_json)
     return instance.get_topology(topology_id)
 
 @app.get("/topologies/{topology_id}")
-async def get_topology(topology_id: str):
+async def get_topology(topology_id: str) -> NormalizedServiceTemplate:
     return instance.get_topology(topology_id)
 
 

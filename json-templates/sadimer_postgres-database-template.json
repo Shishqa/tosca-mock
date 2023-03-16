@@ -1,0 +1,280 @@
+{
+  "metadata": {
+    "template_author": "sadimer",
+    "template_name": "postgres-database",
+    "template_version": "1.0.0",
+    "template_id": "sadimer/postgres-database"
+  },
+  "inputs": {
+    "db_user": null,
+    "db_password": null,
+    "db_name": null
+  },
+  "nodes": {
+    "postgres-db": {
+      "artifacts": {
+        "artifacts/postgres/ansible/roles/postgres_install": {
+          "deploy_path": "roles/postgres_database",
+          "file": "file:/home/shishqa/dev/ispras/tosca-mock/artifacts/postgres/ansible/roles/postgres_database",
+          "type": "tosca.artifacts.File"
+        }
+      },
+      "attributes": {
+        "tosca_id": null,
+        "tosca_name": null,
+        "state": "initial"
+      },
+      "capabilities": {
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": {
+                "primary": "artifacts/postgres/ansible/database.yaml",
+                "dependencies": [
+                  "artifacts/postgres/ansible/roles/postgres_database"
+                ],
+                "operation_host": "HOST"
+              },
+              "inputs": {
+                "postgres_db_password": {
+                  "get_property": [
+                    "SELF",
+                    "db_password"
+                  ]
+                },
+                "postgres_db_name": {
+                  "get_property": [
+                    "SELF",
+                    "db_name"
+                  ]
+                },
+                "postgres_db_user": {
+                  "get_property": [
+                    "SELF",
+                    "db_user"
+                  ]
+                }
+              },
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {
+        "db_user": {
+          "get_input": [
+            "db_user"
+          ]
+        },
+        "db_password": {
+          "get_input": [
+            "db_password"
+          ]
+        },
+        "db_name": {
+          "get_input": [
+            "db_name"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "dbms": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        },
+        {
+          "host": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "tosca_id": null,
+                "tosca_name": null,
+                "state": "initial"
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.HostedOn"
+            }
+          }
+        }
+      ],
+      "type": "clouni.nodes.postgres.database"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "clouni.nodes.postgres.database",
+    "attributes": {},
+    "properties": {
+      "db_name": [
+        "db_name"
+      ],
+      "db_user": [
+        "db_user"
+      ],
+      "db_password": [
+        "db_password"
+      ]
+    },
+    "capabilities": {},
+    "requirements": {
+      "dbms": [
+        "postgres-db",
+        "dbms"
+      ],
+      "host": [
+        "postgres-db",
+        "host"
+      ]
+    }
+  }
+}

@@ -13,38 +13,38 @@ topology_template:
 
   node_templates:
 
-    hello-world-app:
-      type: tosca.nodes.WebApplication
-      capabilities:
-        app_endpoint:
-          attributes:
-            ip_address: { get_attribute: [ nginx, data_endpoint, ip_address ] }
-      requirements:
-        - host: nginx
-      interfaces:
-        Standard:
-          operations:
-            start:
-              implementation:
-                primary: artifacts/hello-world/ansible/start.yaml
-                dependencies:
-                  - artifacts/index.html
-                operation_host: HOST
-      artifacts:
-        artifacts/index.html:
-          file: artifacts/index.html
-          deploy_path: index.html
-          type: tosca.artifacts.File   
+    # hello-world-app:
+    #   type: tosca.nodes.WebApplication
+    #   capabilities:
+    #     app_endpoint:
+    #       attributes:
+    #         ip_address: { get_attribute: [ nginx, data_endpoint, ip_address ] }
+    #   requirements:
+    #     - host: nginx
+    #   interfaces:
+    #     Standard:
+    #       operations:
+    #         start:
+    #           implementation:
+    #             primary: artifacts/hello-world/ansible/start.yaml
+    #             dependencies:
+    #               - artifacts/index.html
+    #             operation_host: HOST
+    #   artifacts:
+    #     artifacts/index.html:
+    #       file: artifacts/index.html
+    #       deploy_path: index.html
+    #       type: tosca.artifacts.File   
 
-    nginx:
-      type: nginx:Nginx
-      directives: [ substitute ]
-      capabilities:
-        data_endpoint:
-          attributes:
-            ip_address: { get_attribute: [ SELF, host, public_address ] }
-      requirements:
-        - host: test-from-orchestrator
+    # nginx:
+    #   type: nginx:Nginx
+    #   directives: [ substitute ]
+    #   capabilities:
+    #     data_endpoint:
+    #       attributes:
+    #         ip_address: { get_attribute: [ SELF, host, public_address ] }
+    #   requirements:
+    #     - host: test-from-orchestrator
 
     test-from-orchestrator:
       type: tosca.nodes.Compute

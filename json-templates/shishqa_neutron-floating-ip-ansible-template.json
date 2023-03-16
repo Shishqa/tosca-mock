@@ -1,0 +1,189 @@
+{
+  "metadata": {
+    "template_name": "neutron-floating-ip-ansible",
+    "template_author": "shishqa",
+    "template_version": "1.0",
+    "template_id": "shishqa/neutron-floating-ip-ansible"
+  },
+  "inputs": {},
+  "nodes": {
+    "os_floating_ip": {
+      "artifacts": {},
+      "attributes": {
+        "tosca_name": null,
+        "state": "initial",
+        "tosca_id": null
+      },
+      "capabilities": {
+        "endpoint": {
+          "attributes": {
+            "ip_address": null
+          },
+          "properties": {
+            "initiator": "source",
+            "protocol": "tcp",
+            "network_name": "test",
+            "secure": false
+          },
+          "type": "neutron.FloatingIp"
+        },
+        "feature": {
+          "attributes": {},
+          "properties": {},
+          "type": "tosca.capabilities.Node"
+        }
+      },
+      "directives": [],
+      "interfaces": {
+        "Standard": {
+          "inputs": {},
+          "operations": {
+            "start": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "stop": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "create": {
+              "implementation": {
+                "primary": "artifacts/openstack/ansible/os_floating_ip_create.yaml",
+                "dependencies": [],
+                "operation_host": "ORCHESTRATOR"
+              },
+              "inputs": {
+                "floating_ip_pool": {
+                  "get_property": [
+                    "SELF",
+                    "endpoint",
+                    "network_name"
+                  ]
+                },
+                "server_id": {
+                  "get_attribute": [
+                    "SELF",
+                    "nova_server",
+                    "host",
+                    "openstack_id"
+                  ]
+                }
+              },
+              "outputs": {
+                "ip_address": [
+                  "SELF",
+                  "endpoint",
+                  "ip_address"
+                ]
+              }
+            },
+            "delete": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            },
+            "configure": {
+              "implementation": null,
+              "inputs": {},
+              "outputs": {}
+            }
+          },
+          "type": "tosca.interfaces.node.lifecycle.Standard"
+        }
+      },
+      "metadata": {},
+      "properties": {},
+      "requirements": [
+        {
+          "nova_server": {
+            "capability": null,
+            "directives": [],
+            "node": null,
+            "relationship": {
+              "attributes": {
+                "state": "initial",
+                "tosca_id": null,
+                "tosca_name": null
+              },
+              "interfaces": {
+                "Configure": {
+                  "inputs": {},
+                  "operations": {
+                    "pre_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "target_changed": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "remove_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "pre_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_target": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "post_configure_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    },
+                    "add_source": {
+                      "implementation": null,
+                      "inputs": {},
+                      "outputs": {}
+                    }
+                  },
+                  "type": "tosca.interfaces.relationship.Configure"
+                }
+              },
+              "properties": {},
+              "type": "tosca.relationships.DependsOn"
+            }
+          }
+        }
+      ],
+      "type": "neutron.FloatingIp"
+    }
+  },
+  "substitution_mappings": {
+    "node_type": "neutron.FloatingIp",
+    "attributes": {},
+    "properties": {},
+    "capabilities": {
+      "endpoint": [
+        "os_floating_ip",
+        "endpoint"
+      ]
+    },
+    "requirements": {
+      "nova_server": [
+        "os_floating_ip",
+        "nova_server"
+      ]
+    }
+  }
+}

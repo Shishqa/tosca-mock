@@ -1,9 +1,15 @@
 
 import graphlib
+import os
+import yaml
 
 from ..client import repository, resolver
 
+from ..resolver import coercer
+
 from . import runner
+
+from typing import Dict, List, Tuple, Optional, Union
 
 # def get_node_state(node_name):
 #   topology = instance_storage.get_topology(node_name[0])
@@ -125,11 +131,13 @@ def get_address_by_host(topology, node_name, host):
   address = None
   if host == 'HOST':
     for req in node.requirements:
-      print(req.type)
-      if req.type != 'tosca::HostedOn':
+      req_name = list(req.keys())[0]
+      print(req[req_name].relationship.type)
+      if req[req_name].relationship.type != 'tosca.relationships.HostedOn':
         continue
       
-      address = req.target.attributes['public_address']
+      address = coercer.get_attribute(topology, ('NODE', node_name), [ 'SELF', req_name, 'public_address' ])
+      address = address.__root__
       break
 
   if host == 'ORCHESTRATOR':
@@ -138,10 +146,20 @@ def get_address_by_host(topology, node_name, host):
   return address
 
 
+def to_python_value(value):
+  if isinstance(value.__root__, List):
+    return [ v.__root__ for v in value.__root__ ]
+  return value.__root__
+
+
 def run_operation(topology_id, node_name, interface, operation):
   print(f'RUN {topology_id} {node_name} {interface} {operation}')
 
   coerced_topology = resolver.get_cluster(topology_id)
+  print('============')
+  print(yaml.dump(coerced_topology))
+  print('============')
+  
   node = coerced_topology.nodes[node_name]
   operation = node.interfaces[interface].operations[operation]
 
@@ -149,7 +167,7 @@ def run_operation(topology_id, node_name, interface, operation):
     return
 
   print(operation)
-  inputs = { inp_name: inp.__root__ for inp_name, inp in operation.inputs.items() }
+  inputs = { inp_name: to_python_value(inp) for inp_name, inp in operation.inputs.items() }
   #print(inputs)
   
   host = operation.implementation.operation_host
@@ -157,7 +175,18 @@ def run_operation(topology_id, node_name, interface, operation):
   if address is None:
     raise RuntimeError(f'cannot run operation, no valid address for {host}')
 
-  dependencies = operation.implementation.dependencies
+  dependencies = []
+  for dependency_name in operation.implementation.dependencies:
+    if dependency_name in node.artifacts.keys():
+      dependencies.append({
+        'source': dependency_name,
+        'dest': node.artifacts[dependency_name].deploy_path
+      })
+    else:
+      dependencies.append({
+        'source': dependency_name,
+        'dest': os.path.basename(dependency_name)
+      })
 
   ok, run_outputs = runner.run_artifact(
     address,
@@ -169,10 +198,8 @@ def run_operation(topology_id, node_name, interface, operation):
   print(f'OUTPUTS: {run_outputs}')
 
   if not ok:
-    topology = repository.get_topology(topology_id)
-    topology.nodes[node_name].attributes['state'] = 'failed'
-    repository.update_topology(topology)
-    raise RuntimeError(f'failed operation {operation.definition}')
+    update_node_state(topology_id, node_name, 'failed')
+    raise RuntimeError(f'failed operation {operation}')
 
   for output_name, output in operation.outputs.items():
     if output_name not in run_outputs.keys():
